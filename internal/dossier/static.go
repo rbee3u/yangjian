@@ -38,6 +38,7 @@ type StaticAnalysis struct {
 	Methods           []MethodIdentifier     `json:"methods"`
 	Functions         []FunctionSurface      `json:"functions"`
 	CallSites         []CallSite             `json:"call_sites"`
+	Imports           []SourceImport         `json:"imports,omitempty"`
 	Counts            CallSiteCounts         `json:"call_site_counts"`
 	Warnings          []string               `json:"warnings,omitempty"`
 	Artifact          string                 `json:"artifact,omitempty"`
@@ -102,6 +103,13 @@ type FunctionSurface struct {
 	Virtual         bool     `json:"virtual,omitempty"`
 	Source          string   `json:"source"`
 	Src             string   `json:"src"`
+}
+
+type SourceImport struct {
+	From    string   `json:"from"`
+	Path    string   `json:"path"`
+	Symbols []string `json:"symbols,omitempty"`
+	Src     string   `json:"src,omitempty"`
 }
 
 type CallSite struct {
@@ -357,6 +365,7 @@ func buildStaticAnalysis(st *store.Store, manifest model.Manifest, revision *mod
 	})
 	analysis.CallSites = callSites
 	analysis.Counts = countCallSites(callSites)
+	analysis.Imports = collectSourceImports(output.Sources)
 	sort.Slice(analysis.Functions, func(i, j int) bool {
 		if analysis.Functions[i].Contract != analysis.Functions[j].Contract {
 			return analysis.Functions[i].Contract < analysis.Functions[j].Contract
@@ -987,6 +996,67 @@ func libraryCallKind(callee astFunction) string {
 		return "library_delegatecall"
 	}
 	return "library"
+}
+
+func collectSourceImports(sources map[string]staticSource) []SourceImport {
+	imports := make([]SourceImport, 0)
+	for source, src := range sources {
+		walkAST(src.AST, func(node map[string]any) {
+			if astString(node, "nodeType") != "ImportDirective" {
+				return
+			}
+			path := astString(node, "file")
+			if path == "" {
+				path = astString(node, "absolutePath")
+			}
+			if path == "" {
+				return
+			}
+			imported := SourceImport{
+				From: source,
+				Path: path,
+				Src:  astString(node, "src"),
+			}
+			if aliases, ok := node["symbolAliases"].([]any); ok {
+				for _, raw := range aliases {
+					alias := astMap(raw)
+					name := astString(astMap(alias["foreign"]), "name")
+					if local := astString(alias, "local"); local != "" {
+						name += " as " + local
+					}
+					if name != "" {
+						imported.Symbols = append(imported.Symbols, name)
+					}
+				}
+			}
+			if alias := astString(node, "unitAlias"); alias != "" {
+				imported.Symbols = append(imported.Symbols, "* as "+alias)
+			}
+			sort.Strings(imported.Symbols)
+			imports = append(imports, imported)
+		})
+	}
+	sort.Slice(imports, func(i, j int) bool {
+		if imports[i].From != imports[j].From {
+			return imports[i].From < imports[j].From
+		}
+		if imports[i].Path != imports[j].Path {
+			return imports[i].Path < imports[j].Path
+		}
+		return strings.Join(imports[i].Symbols, ",") < strings.Join(imports[j].Symbols, ",")
+	})
+	deduped := imports[:0]
+	for _, imported := range imports {
+		if len(deduped) > 0 {
+			previous := deduped[len(deduped)-1]
+			if previous.From == imported.From && previous.Path == imported.Path &&
+				strings.Join(previous.Symbols, ",") == strings.Join(imported.Symbols, ",") {
+				continue
+			}
+		}
+		deduped = append(deduped, imported)
+	}
+	return deduped
 }
 
 func countCallSites(calls []CallSite) CallSiteCounts {

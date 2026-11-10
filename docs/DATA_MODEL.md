@@ -116,7 +116,7 @@ No random UUIDs. Observations and artifacts are deduplicated by content hash.
 
 Type-specific requirements:
 
-- `source_dependency`: source path and symbol.
+- `source_dependency`: source path and symbol. Import relations point from `source:<revision>#<path>` to a content-addressed source file; inheritance relations point from a derived source coordinate to its base contract coordinate. Attributes record `relation`, `source_path`, `symbol`, and `source_revision_id`.
 - `onchain_reference`: method or event, block number/hash. M1 pool relations record `method`, `selector`, `address`, `block_hash`, and `observation_id`.
 - `observed_call`: transaction hash, trace reference, call path.
 - `inferred_relation`: heuristic name and rule version; never rendered as a fact.
@@ -153,6 +153,7 @@ structured index of the observations and artifacts used by the report.
 | `methods` | object[] | Signature and selector from `evm.methodIdentifiers` |
 | `functions` | object[] | Visibility, mutability, modifiers, source location |
 | `call_sites` | object[] | Caller, kind (`internal`, `external`, `library`, `library_delegatecall`, `delegatecall`, low-level, `callback`, `create`), callee, target type, source location |
+| `imports` | object[] | Source file, imported path, imported symbols, source location |
 | `call_site_counts` | object | Counts by kind |
 | `warnings` | string[] | Incomplete or truncated analysis |
 

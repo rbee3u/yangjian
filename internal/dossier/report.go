@@ -379,7 +379,7 @@ func renderReport(data reportData) string {
 			fmt.Fprintf(&b, "| %s | %s | %s | %s | %s |\n",
 				md(relation.Type), md(relation.From), md(relation.To), md(method), md(strings.Join(relation.EvidenceRefs, ", ")))
 		}
-		b.WriteString("\nThe relations above are `onchain_reference` edges observed through pinned-block calls. They are not transaction execution evidence.\n\n")
+		b.WriteString("\n`onchain_reference` edges come from pinned-block calls; `source_dependency` edges come from the matched source. Neither is transaction execution evidence.\n\n")
 	}
 
 	b.WriteString("## Topology\n\n```mermaid\n")
@@ -440,6 +440,7 @@ func renderStaticSection(b *strings.Builder, analysis *StaticAnalysis) {
 	}
 	row("Immutable variables", strings.Join(immutableNames, ", "))
 	row("Method identifiers", fmt.Sprintf("%d", len(analysis.Methods)))
+	row("Source imports", fmt.Sprintf("%d", len(analysis.Imports)))
 	row("Call sites", fmt.Sprintf("%d (internal %d, external %d, library %d, library-delegatecall %d, delegatecall %d, low-level %d, callback %d, create %d)",
 		analysis.Counts.Total, analysis.Counts.Internal, analysis.Counts.External, analysis.Counts.Library,
 		analysis.Counts.LibraryDelegatecall, analysis.Counts.Delegatecall,

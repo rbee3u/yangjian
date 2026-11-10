@@ -3,6 +3,7 @@ package dossier
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/rbee3u/yangjian/internal/model"
@@ -18,7 +20,13 @@ import (
 
 type ProxyStorage interface {
 	StorageAt(ctx context.Context, account common.Address, slot common.Hash, blockNumber *big.Int) ([]byte, error)
+	CallContract(ctx context.Context, call ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
 }
+
+var beaconABI = mustParseABI(`[
+  {"type":"function","name":"implementation","inputs":[],"outputs":[
+    {"name":"","type":"address"}],"stateMutability":"view"}
+]`)
 
 type AnalyzeParams struct {
 	ChainID int64
@@ -47,6 +55,7 @@ type StaticSummary struct {
 	StorageEntries    int      `json:"storage_entries"`
 	Immutables        []string `json:"immutables"`
 	Methods           int      `json:"methods"`
+	Imports           int      `json:"imports"`
 	CallSites         int      `json:"call_sites"`
 	Delegatecalls     int      `json:"delegatecalls"`
 	LibraryDelegate   int      `json:"library_delegatecalls"`
@@ -142,6 +151,18 @@ func RunAnalyze(ctx context.Context, params AnalyzeParams) (AnalyzeResult, error
 	}
 
 	proxyType, implementation, beacon, admin, warnings := detectProxy(code, values)
+	if proxyType == "beacon" && beacon != "" {
+		resolved, observationID, warning := resolveBeaconImplementation(ctx, params, manifest.Block, common.HexToAddress(beacon))
+		if resolved != "" {
+			implementation = resolved
+		}
+		if observationID != "" {
+			observations = append(observations, observationID)
+		}
+		if warning != "" {
+			warnings = append(warnings, warning)
+		}
+	}
 	artifact := proxyArtifact{
 		SchemaVersion:         model.SchemaVersion,
 		ChainID:               params.ChainID,
@@ -269,6 +290,13 @@ func RunAnalyze(ctx context.Context, params AnalyzeParams) (AnalyzeResult, error
 				return AnalyzeResult{}, fmt.Errorf("update source revision: %w", err)
 			}
 		}
+		sourceRelationIDs, err := writeSourceDependencyRelations(params.Store, staticRevision, staticAnalysis, staticObservation.ID)
+		if err != nil {
+			return AnalyzeResult{}, err
+		}
+		for _, id := range sourceRelationIDs {
+			manifest.RelationIDs = appendUnique(manifest.RelationIDs, id)
+		}
 	}
 
 	version.ProxyType = proxyType
@@ -295,7 +323,8 @@ func RunAnalyze(ctx context.Context, params AnalyzeParams) (AnalyzeResult, error
 	manifest.OpenQuestions = removeString(manifest.OpenQuestions, "static analysis not run")
 	manifest.OpenQuestions = removeMatching(manifest.OpenQuestions, "static analysis unavailable")
 	manifest.OpenQuestions = removeMatching(manifest.OpenQuestions, "static analysis warning")
-	if proxyType == "beacon" {
+	manifest.OpenQuestions = removeString(manifest.OpenQuestions, "beacon proxy implementation not resolved")
+	if proxyType == "beacon" && implementation == "" {
 		manifest.OpenQuestions = appendUnique(manifest.OpenQuestions, "beacon proxy implementation not resolved")
 	}
 	for _, warning := range warnings {
@@ -332,6 +361,101 @@ func RunAnalyze(ctx context.Context, params AnalyzeParams) (AnalyzeResult, error
 	return result, nil
 }
 
+func writeSourceDependencyRelations(st *store.Store, revision *model.SourceRevision, analysis *StaticAnalysis, observationID string) ([]string, error) {
+	if revision == nil || analysis == nil {
+		return nil, nil
+	}
+	sourceHashes := make(map[string]string, len(revision.Sources))
+	for _, file := range revision.Sources {
+		hash := strings.ToLower(strings.TrimPrefix(file.Keccak256, "0x"))
+		for _, key := range uniqueSourceCandidates(file.Path) {
+			sourceHashes[key] = hash
+		}
+	}
+	relationIDs := make([]string, 0)
+	seen := make(map[string]bool)
+	write := func(from, to, sourcePath, symbol string, attributes map[string]any) error {
+		if from == "" || to == "" {
+			return nil
+		}
+		id := model.RelationID("source_dependency", from, to, observationID)
+		if seen[id] {
+			return nil
+		}
+		seen[id] = true
+		relation := model.Relation{
+			SchemaVersion: model.SchemaVersion,
+			ID:            id,
+			Type:          "source_dependency",
+			From:          from,
+			To:            to,
+			Attributes: map[string]any{
+				"source_path": sourcePath,
+				"symbol":      symbol,
+			},
+			EvidenceRefs: []string{observationID},
+		}
+		for key, value := range attributes {
+			relation.Attributes[key] = value
+		}
+		if _, err := st.WriteJSON(relationPath(id), relation); err != nil {
+			return fmt.Errorf("write source dependency relation: %w", err)
+		}
+		relationIDs = append(relationIDs, id)
+		return nil
+	}
+
+	for _, imported := range analysis.Imports {
+		from := sourceCoordinate(revision.ID, imported.From, "")
+		to := sourceCoordinate(revision.ID, imported.Path, "")
+		if hash := sourceHashes[imported.Path]; hash != "" {
+			to = "source:keccak256:" + hash
+		}
+		if err := write(from, to, imported.From, imported.Path, map[string]any{
+			"relation":           "import",
+			"import_path":        imported.Path,
+			"source_revision_id": revision.ID,
+		}); err != nil {
+			return nil, err
+		}
+	}
+	for _, node := range analysis.Inheritance {
+		for _, base := range node.Bases {
+			basePath, baseName := splitQualifiedContract(base)
+			if basePath == "" {
+				continue
+			}
+			from := sourceCoordinate(revision.ID, node.Source, node.Contract)
+			to := sourceCoordinate(revision.ID, basePath, baseName)
+			if err := write(from, to, node.Source, node.Contract, map[string]any{
+				"relation":           "inheritance",
+				"base_contract":      baseName,
+				"base_source":        basePath,
+				"source_revision_id": revision.ID,
+			}); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return relationIDs, nil
+}
+
+func sourceCoordinate(revisionID, sourcePath, symbol string) string {
+	coordinate := "source:" + revisionID + "#" + sourcePath
+	if symbol != "" {
+		coordinate += ":" + symbol
+	}
+	return coordinate
+}
+
+func splitQualifiedContract(value string) (string, string) {
+	index := strings.LastIndex(value, ":")
+	if index < 0 {
+		return "", value
+	}
+	return value[:index], value[index+1:]
+}
+
 func loadStaticForAnalyze(st *store.Store, manifest model.Manifest) (*StaticAnalysis, *model.SourceRevision, string, []string, error) {
 	_, revision, revisionPath, err := loadSourceRevision(st)
 	if err != nil {
@@ -359,6 +483,7 @@ func summarizeStatic(analysis *StaticAnalysis) *StaticSummary {
 		StorageEntries:    len(analysis.Storage),
 		Immutables:        immutables,
 		Methods:           len(analysis.Methods),
+		Imports:           len(analysis.Imports),
 		CallSites:         len(analysis.CallSites),
 		Delegatecalls:     analysis.Counts.Delegatecall,
 		LibraryDelegate:   analysis.Counts.LibraryDelegatecall,
@@ -367,6 +492,53 @@ func summarizeStatic(analysis *StaticAnalysis) *StaticSummary {
 		Artifact:          analysis.Artifact,
 		Warnings:          analysis.Warnings,
 	}
+}
+
+func resolveBeaconImplementation(ctx context.Context, params AnalyzeParams, block model.BlockRef, beacon common.Address) (string, string, string) {
+	callData, err := beaconABI.Pack("implementation")
+	if err != nil {
+		return "", "", "pack beacon implementation(): " + err.Error()
+	}
+	blockNumber := new(big.Int).SetUint64(block.Number)
+	raw, err := params.Reader.CallContract(ctx, ethereum.CallMsg{To: &beacon, Data: callData}, blockNumber)
+	if err != nil {
+		return "", "", "beacon implementation call failed: " + err.Error()
+	}
+	var implementation common.Address
+	decodeErr := beaconABI.UnpackIntoInterface(&implementation, "implementation", raw)
+	observation, writeErr := params.Store.WriteObservation(model.Observation{
+		SchemaVersion: model.SchemaVersion,
+		Kind:          "rpc_call",
+		RunID:         params.RunID,
+		Request: map[string]any{
+			"method": "eth_call",
+			"params": []any{
+				map[string]any{"to": strings.ToLower(beacon.Hex()), "data": "0x" + hex.EncodeToString(callData)},
+				fmt.Sprintf("0x%x", block.Number),
+			},
+			"function": "implementation",
+			"role":     "beacon",
+		},
+		ResponseHash: model.ContentHash(raw),
+		Block:        &block,
+		RetrievedAt:  time.Now().UTC(),
+		Source:       model.SourceRef{Provider: "rpc", EndpointClass: "configured"},
+		Meta: map[string]any{
+			"beacon":         beacon.Hex(),
+			"response_hex":   "0x" + hex.EncodeToString(raw),
+			"implementation": implementation.Hex(),
+		},
+	})
+	if writeErr != nil {
+		return "", "", "record beacon implementation observation: " + writeErr.Error()
+	}
+	if decodeErr != nil {
+		return "", observation.ID, "decode beacon implementation(): " + decodeErr.Error()
+	}
+	if implementation == (common.Address{}) {
+		return "", observation.ID, "beacon returned the zero implementation address"
+	}
+	return implementation.Hex(), observation.ID, ""
 }
 
 func detectProxy(code []byte, slots map[string]common.Hash) (string, string, string, string, []string) {

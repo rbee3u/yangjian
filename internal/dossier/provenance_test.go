@@ -16,13 +16,17 @@ import (
 )
 
 type fakeCompiler struct {
-	binary solc.Binary
-	output solc.Output
-	err    error
-	input  []byte
+	binary    solc.Binary
+	output    solc.Output
+	err       error
+	ensureErr error
+	input     []byte
 }
 
 func (f *fakeCompiler) Ensure(ctx context.Context, longVersion string) (solc.Binary, error) {
+	if f.ensureErr != nil {
+		return solc.Binary{}, f.ensureErr
+	}
 	return f.binary, nil
 }
 

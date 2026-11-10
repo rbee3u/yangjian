@@ -2,6 +2,7 @@ package dossier
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"os"
 	"testing"
@@ -128,12 +129,39 @@ func TestRunAnalyzeMinimalProxy(t *testing.T) {
 
 func TestRunAnalyzeBeacon(t *testing.T) {
 	beacon := common.HexToAddress("0x3333333333333333333333333333333333333333")
+	implementation := common.HexToAddress("0x4444444444444444444444444444444444444444")
+	storage := map[common.Hash][]byte{
+		analyzeSlot("eip1967.beacon"): addressWord(beacon),
+	}
+	st, address, chain := newAnalyzeDossier(t, []byte{0x60, 0x80}, storage)
+	encoded, err := beaconABI.Methods["implementation"].Outputs.Pack(implementation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	chain.callResponses = map[string][]byte{
+		hex.EncodeToString(beaconABI.Methods["implementation"].ID): encoded,
+	}
+	result := runAnalyze(t, st, address, chain)
+	if result.ProxyType != "beacon" || result.BeaconAddress != beacon.Hex() || result.ImplementationAddress != implementation.Hex() {
+		t.Fatalf("result = %+v", result)
+	}
+	var manifest model.Manifest
+	if err := st.ReadJSON("manifest.json", &manifest); err != nil {
+		t.Fatal(err)
+	}
+	if contains(manifest.OpenQuestions, "beacon proxy implementation not resolved") {
+		t.Fatalf("open questions = %v", manifest.OpenQuestions)
+	}
+}
+
+func TestRunAnalyzeBeaconUnresolved(t *testing.T) {
+	beacon := common.HexToAddress("0x3333333333333333333333333333333333333333")
 	storage := map[common.Hash][]byte{
 		analyzeSlot("eip1967.beacon"): addressWord(beacon),
 	}
 	st, address, chain := newAnalyzeDossier(t, []byte{0x60, 0x80}, storage)
 	result := runAnalyze(t, st, address, chain)
-	if result.ProxyType != "beacon" || result.BeaconAddress != beacon.Hex() || result.ImplementationAddress != "" {
+	if result.ProxyType != "beacon" || result.ImplementationAddress != "" {
 		t.Fatalf("result = %+v", result)
 	}
 	var manifest model.Manifest
@@ -142,6 +170,19 @@ func TestRunAnalyzeBeacon(t *testing.T) {
 	}
 	if !contains(manifest.OpenQuestions, "beacon proxy implementation not resolved") {
 		t.Fatalf("open questions = %v", manifest.OpenQuestions)
+	}
+}
+
+func TestRunAnalyzeBeaconCallError(t *testing.T) {
+	beacon := common.HexToAddress("0x3333333333333333333333333333333333333333")
+	storage := map[common.Hash][]byte{
+		analyzeSlot("eip1967.beacon"): addressWord(beacon),
+	}
+	st, address, chain := newAnalyzeDossier(t, []byte{0x60, 0x80}, storage)
+	chain.callErr = errors.New("rpc down")
+	result := runAnalyze(t, st, address, chain)
+	if result.ImplementationAddress != "" || len(result.Warnings) == 0 {
+		t.Fatalf("result = %+v", result)
 	}
 }
 

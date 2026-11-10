@@ -41,8 +41,8 @@ Stages:
 
 1. `code` — `eth_getCode`, runtime bytecode hash, block pinning, ContractVersion.
 2. `source` — Sourcify fetch; record match mode and compiler settings; Etherscan cross-check if configured.
-3. `provenance` — metadata binding when possible; P2 rebuild when `bytecodeHash: none`; P0 fallback.
-4. `analyze` — proxy detection (EIP-1967, EIP-1822, EIP-1167, beacon). When a P2 build exists, parse the recorded solc output for the deployed contract's inheritance linearization, storage layout, immutable references, method identifiers, and call sites (internal, external, delegatecall, create). Source structure is derived from the same compiler output that supports provenance, not from the latest GitHub tree.
+3. `provenance` — P1 embedded-metadata/source/settings binding when `bytecodeHash` is not `none`; P2 rebuild in all cases; P0 fallback.
+4. `analyze` — proxy detection (EIP-1967, EIP-1822, EIP-1167, beacon with `implementation()` resolution). When a P2 build exists, parse the recorded solc output for the deployed contract's inheritance linearization, storage layout, immutable references, method identifiers, source imports, and call sites (internal, external, library, delegatecall, create). Emit `source_dependency` relations for imports and inheritance. Source structure is derived from the same compiler output that supports provenance, not from the latest GitHub tree.
 5. `state` — pinned-block calls: `slot0()`, `liquidity()`, `ticks(currentTick)`, plus pool immutables (`token0`, `token1`, `factory`, `fee`, `tickSpacing`, `maxLiquidityPerTick`). Emits `onchain_reference` relations for the three addresses.
 6. `report` — Markdown narrative, Mermaid topology/architecture diagrams, `relations.json`, `evidence.json`, manifest update.
 

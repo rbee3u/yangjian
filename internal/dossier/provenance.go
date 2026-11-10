@@ -94,6 +94,38 @@ func RunProvenance(ctx context.Context, params ProvenanceParams) (ProvenanceResu
 		return ProvenanceResult{}, err
 	}
 
+	p1, err := assessMetadataBinding(revision, params.Store, onchain)
+	if err != nil {
+		return ProvenanceResult{}, err
+	}
+	if p1.Attempted {
+		observation, err := writeMetadataBindingObservation(params, manifest, revision, p1, onchainObsID)
+		if err != nil {
+			return ProvenanceResult{}, err
+		}
+		revision.EvidenceRefs = appendUnique(revision.EvidenceRefs, observation.ID)
+		manifest.ObservationIDs = appendUnique(manifest.ObservationIDs, observation.ID)
+		manifest.OpenQuestions = removeString(manifest.OpenQuestions, "P1 metadata binding not attempted")
+		manifest.OpenQuestions = removeMatching(manifest.OpenQuestions, "P1 metadata binding failed")
+		if p1.Matched {
+			revision.ProvenanceLevel = "P1"
+			revision.Correspondence = "proven"
+			manifest.OpenQuestions = removeString(manifest.OpenQuestions, "P1 unavailable: metadata.bytecodeHash=none; P2 required")
+		} else {
+			revision.ProvenanceLevel = "P0"
+			revision.Correspondence = "unproven"
+			manifest.OpenQuestions = appendUnique(manifest.OpenQuestions, "P1 metadata binding failed: "+p1.Reason)
+		}
+		manifest.Status = "partial"
+		manifest.UpdatedAt = time.Now().UTC()
+		if _, err := params.Store.WriteJSON(revisionRel, revision); err != nil {
+			return ProvenanceResult{}, fmt.Errorf("update source revision: %w", err)
+		}
+		if _, err := params.Store.WriteJSON("manifest.json", manifest); err != nil {
+			return ProvenanceResult{}, fmt.Errorf("update manifest: %w", err)
+		}
+	}
+
 	binary, err := params.Compiler.Ensure(ctx, revision.Compilation.Compiler)
 	if err != nil {
 		return ProvenanceResult{}, fmt.Errorf("ensure compiler %s: %w", revision.Compilation.Compiler, err)
@@ -246,6 +278,7 @@ func RunProvenance(ctx context.Context, params ProvenanceParams) (ProvenanceResu
 	manifest.OpenQuestions = removeMatching(manifest.OpenQuestions, "P2 rebuild did not match")
 	if match {
 		manifest.OpenQuestions = removeString(manifest.OpenQuestions, "P1 unavailable: metadata.bytecodeHash=none; P2 required")
+		manifest.OpenQuestions = removeMatching(manifest.OpenQuestions, "P1 metadata binding failed")
 	} else {
 		question := "P2 rebuild did not match runtime bytecode"
 		if mismatch != nil {

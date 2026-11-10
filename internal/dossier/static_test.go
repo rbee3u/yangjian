@@ -58,6 +58,12 @@ const staticOutputTemplate = `{
         "id": 0,
         "nodes": [
           {
+            "nodeType": "ImportDirective",
+            "file": "contracts/Base.sol",
+            "src": "0:10:0",
+            "symbolAliases": [{"foreign": {"name": "PoolBase"}}]
+          },
+          {
             "nodeType": "ContractDefinition",
             "id": 1,
             "name": "PoolBase",
@@ -347,6 +353,9 @@ func TestBuildStaticAnalysis(t *testing.T) {
 	if len(analysis.Functions) != 4 {
 		t.Fatalf("functions = %+v", analysis.Functions)
 	}
+	if len(analysis.Imports) != 1 || analysis.Imports[0].Path != "contracts/Base.sol" {
+		t.Fatalf("imports = %+v", analysis.Imports)
+	}
 	if analysis.Counts.Total != 6 {
 		t.Fatalf("call sites = %+v", analysis.CallSites)
 	}
@@ -446,6 +455,21 @@ func TestRunAnalyzeStatic(t *testing.T) {
 	}
 	if len(manifest.ObservationIDs) != 10 {
 		t.Fatalf("observations = %v", manifest.ObservationIDs)
+	}
+	if len(manifest.RelationIDs) != 2 {
+		t.Fatalf("relations = %v", manifest.RelationIDs)
+	}
+	for _, relationID := range manifest.RelationIDs {
+		var relation model.Relation
+		if err := st.ReadJSON(relationPath(relationID), &relation); err != nil {
+			t.Fatal(err)
+		}
+		if relation.Type != "source_dependency" {
+			t.Fatalf("relation = %+v", relation)
+		}
+		if relation.Attributes["source_path"] == "" || relation.Attributes["symbol"] == "" {
+			t.Fatalf("relation attributes = %+v", relation.Attributes)
+		}
 	}
 	report, err := RunReport(ReportParams{
 		ChainID: 1,

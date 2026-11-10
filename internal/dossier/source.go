@@ -251,11 +251,18 @@ func RunSource(ctx context.Context, params SourceParams) (SourceResult, error) {
 	}
 	sourceRel := filepath.Join("entities", "sources", strings.TrimPrefix(sourceRevisionID, "sha256:")+".json")
 	var existing model.SourceRevision
-	if err := params.Store.ReadJSON(sourceRel, &existing); err == nil && existing.ID == sourceRevisionID && existing.Build != nil {
-		sourceRevision.Build = existing.Build
-		sourceRevision.ProvenanceLevel = existing.ProvenanceLevel
-		sourceRevision.Correspondence = existing.Correspondence
-		sourceRevision.EvidenceRefs = appendUnique(existing.EvidenceRefs, obs.ID)
+	if err := params.Store.ReadJSON(sourceRel, &existing); err == nil && existing.ID == sourceRevisionID {
+		switch {
+		case existing.Build != nil:
+			sourceRevision.Build = existing.Build
+			sourceRevision.ProvenanceLevel = existing.ProvenanceLevel
+			sourceRevision.Correspondence = existing.Correspondence
+			sourceRevision.EvidenceRefs = appendUnique(existing.EvidenceRefs, obs.ID)
+		case existing.ProvenanceLevel == "P1" && existing.Correspondence == "proven":
+			sourceRevision.ProvenanceLevel = existing.ProvenanceLevel
+			sourceRevision.Correspondence = existing.Correspondence
+			sourceRevision.EvidenceRefs = appendUnique(existing.EvidenceRefs, obs.ID)
+		}
 	}
 	if _, err := params.Store.WriteJSON(sourceRel, sourceRevision); err != nil {
 		return SourceResult{}, fmt.Errorf("write source revision: %w", err)
@@ -279,12 +286,16 @@ func RunSource(ctx context.Context, params SourceParams) (SourceResult, error) {
 		manifest.Artifacts = appendUniqueArtifact(manifest.Artifacts, artifact)
 	}
 	manifest.OpenQuestions = removeString(manifest.OpenQuestions, "source provenance not resolved")
+	manifest.OpenQuestions = removeMatching(manifest.OpenQuestions, "P1 metadata binding failed")
 	if sourceRevision.Build == nil {
 		manifest.OpenQuestions = appendUnique(manifest.OpenQuestions, "local P2 rebuild not attempted")
 		if compilation.BytecodeHash == "none" {
 			manifest.OpenQuestions = appendUnique(manifest.OpenQuestions, "P1 unavailable: metadata.bytecodeHash=none; P2 required")
-		} else {
+			manifest.OpenQuestions = removeString(manifest.OpenQuestions, "P1 metadata binding not attempted")
+		} else if sourceRevision.ProvenanceLevel != "P1" {
 			manifest.OpenQuestions = appendUnique(manifest.OpenQuestions, "P1 metadata binding not attempted")
+		} else {
+			manifest.OpenQuestions = removeString(manifest.OpenQuestions, "P1 metadata binding not attempted")
 		}
 	} else if sourceRevision.Build.Match {
 		manifest.OpenQuestions = removeString(manifest.OpenQuestions, "local P2 rebuild not attempted")

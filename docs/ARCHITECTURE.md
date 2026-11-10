@@ -47,7 +47,7 @@ target registry / explicit input
   → provenance P2 rebuild (solc standard JSON)
   → proxy probe + static structure from the recorded solc output
   → pinned-block state reads (slot0, liquidity, ticks, pool immutables)
-  → onchain_reference relations (source_dependency pending)
+  → onchain_reference and source_dependency relations
   → report.md, topology.mmd, architecture.mmd, relations.json, evidence.json,
     manifest.json, observations
 ```

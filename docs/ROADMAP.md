@@ -2,7 +2,7 @@
 
 Status: Draft for approval · 2026-11-10
 
-Current status: pool discovery, `code`, `source`, `provenance`, `analyze` (proxy detection plus static structure), `state` (including pool immutables and three `onchain_reference` relations), and `report` are implemented and live-verified for the Uniswap V3 USDC/WETH 0.3% Pool. The latest verified run used block 26385477: the pool was discovered from the factory at that block, P2 matched 22142 runtime bytes with 27 immutables masked, proxy type was `none`, and static analysis recorded 9 contracts in the linearization, 9 storage entries, 7 immutable variables, 26 method identifiers, and 94 call sites (23 internal, 5 external, 64 library, 2 low-level `staticcall`, no delegatecall). Remaining M1 work: Etherscan cross-check, `source_dependency` relations, P1 metadata binding, beacon resolution, JSON Schemas, fixtures/golden tests, and provider response caching.
+Current status: pool discovery, `code`, `source`, `provenance`, `analyze` (proxy detection plus static structure), `state` (including pool immutables and three `onchain_reference` relations), and `report` are implemented and live-verified for the Uniswap V3 USDC/WETH 0.3% Pool. The latest verified run used block 26385477: the pool was discovered from the factory at that block, P2 matched 22142 runtime bytes with 27 immutables masked, proxy type was `none`, and static analysis recorded 9 contracts in the linearization, 9 storage entries, 7 immutable variables, 26 method identifiers, and 94 call sites (23 internal, 5 external, 64 library, 2 low-level `staticcall`, no delegatecall). P1 metadata binding, beacon implementation resolution, and `source_dependency` relations from imports/inheritance are also implemented. Remaining M1 work: Etherscan cross-check, JSON Schemas, fixtures/golden tests, and provider response caching.
 
 ## M0 — Design
 
@@ -18,10 +18,10 @@ Steps:
 2. Chain client, provider profiles, block pinning, caching, rate limits, retries.
 3. Sourcify client (implemented); Etherscan cross-check (pending); source artifacts and match modes (implemented).
 4. Pinned solc manager and P2 rebuild (implemented); AST inheritance/C3 linearization, storage layout, immutables, method identifiers, and call sites parsed from the recorded solc output (implemented). Resource limits currently cover timeout, input size, output size, and a static-output read cap; OS memory/CPU rlimits remain an open question.
-5. Proxy detection (EIP-1967/1822/1167; beacon resolution pending) and ContractVersion update (implemented).
-6. Provenance pipeline: P1 when a metadata pointer exists; P2 when `bytecodeHash: none`; P0 fallback with explicit unproven marker. P2 implemented; P1 not yet.
+5. Proxy detection (EIP-1967/1822/1167) with beacon `implementation()` resolution and ContractVersion update (implemented).
+6. Provenance pipeline: P1 embedded-metadata hash and source/settings binding; P2 when `bytecodeHash: none`; P0 fallback with explicit unproven marker. P1 and P2 implemented.
 7. Pinned-block reads: `slot0()`, `liquidity()`, `ticks(currentTick)` (implemented); pool immutables and `onchain_reference` relations (implemented).
-8. Relations: `onchain_reference` (token0, token1, factory) implemented; inheritance is recorded in the static artifact, but `source_dependency` relations are pending.
+8. Relations: `onchain_reference` (token0, token1, factory) and `source_dependency` (imports, inheritance) implemented.
 9. Report, Mermaid diagrams, relations.json, manifest, evidence index (implemented).
 10. Fixtures and tests; live acceptance gated by `YANGJIAN_LIVE=1`.
 
