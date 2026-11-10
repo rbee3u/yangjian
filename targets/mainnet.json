@@ -1,0 +1,43 @@
+{
+  "schema_version": "1",
+  "network": {
+    "chain_id": 1,
+    "name": "Ethereum Mainnet"
+  },
+  "targets": [
+    {
+      "slug": "uniswap-v3",
+      "name": "Uniswap V3",
+      "chain_id": 1,
+      "source_url": "https://developers.uniswap.org/docs/protocols/v3/deployments/v3-ethereum-deployments",
+      "source_retrieved_at": "2026-11-10T00:00:00Z",
+      "source_modified_at": "2026-08-25T05:58:55Z",
+      "contracts": {
+        "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+        "swap_router_02": "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+        "nonfungible_position_manager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+        "quoter": "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
+        "quoter_v2": "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+        "multicall": "0x1F98415757620B543A52E61c46B32eB19261F984",
+        "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+        "universal_router": "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+        "v3_migrator": "0xA5644E29708357803b5A882D272c41cC0dF92B34",
+        "tick_lens": "0xbfd8137f7d1516D3ea5cA83523914859ec47F573",
+        "proxy_admin": "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2",
+        "nft_descriptor": "0x42B24A95702b9986e82d421cC3568932790A48Ec",
+        "transparent_upgradeable_proxy": "0xEe6A57eC80ea46401049E92587E52f5Ec1c24785",
+        "v3_staker": "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65"
+      },
+      "tokens": {
+        "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "WETH": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+      },
+      "acceptance": {
+        "pool_pair": ["USDC", "WETH"],
+        "fee_tier": 3000,
+        "pool_discovery": "UniswapV3Factory.getPool(USDC, WETH, 3000)"
+      },
+      "notes": "Pool addresses are discovered at runtime from the factory and are never seeded. SwapRouter v1 is intentionally omitted; M2 uses SwapRouter02. The Uniswap v3 deployment table is the source of every address above."
+    }
+  ]
+}

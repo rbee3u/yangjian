@@ -1,0 +1,3 @@
+# The CLI starts with one high-level dossier command and stage-level reruns
+
+The M1 integration boundary is `yangjian contract dossier`, which runs the full contract pipeline and writes a reproducible dossier. A `--stage` selector exposes individual stages (`code`, `source`, `provenance`, `analyze`, `state`, `report`) for inspection and reruns; standalone verbs are added only when a real workflow needs them. Exposing every primitive as a separate command from day one would push orchestration and reproducibility onto the agent, while a monolith without stage access would be hard to debug and iterate. The high-level command keeps the acceptance path stable, and `--stage` keeps the agent's granular control.

@@ -1,0 +1,3 @@
+# Research knowledge is built from immutable observations and a derived entity graph
+
+Raw evidence — RPC responses, source artifacts, build outputs, and trace frames — is stored as append-only observations with hashes and retrieval metadata. Protocol, Deployment, Contract, Contract Version, Source Revision, and Relation entities are derived from those observations and can be rebuilt. Reports cite observation IDs. Storing only entities would lose the audit trail and make schema evolution destructive; full event sourcing is unnecessary for a single-user local research system. This preserves reproducibility while keeping the query surface readable.

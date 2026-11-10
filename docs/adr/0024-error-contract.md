@@ -1,0 +1,3 @@
+# Errors use stable codes and structured logs on stderr
+
+Every failure maps to a centralized error code with a category, a `retryable` flag, a message, and structured details; the JSON envelope carries the code on stdout. Logs use `log/slog` JSON on stderr, controlled by `--log-level`, and both channels redact API keys. Each dossier run has a `run_id` shared by logs and envelope. Stable codes let the agent decide whether to retry, degrade, or stop, and stdout/stderr separation keeps machine output parseable. Free-form messages and HTTP-style numeric codes would force the agent to guess or conflate tool errors with transport status.

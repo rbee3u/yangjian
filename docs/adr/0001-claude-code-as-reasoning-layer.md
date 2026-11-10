@@ -1,0 +1,3 @@
+# Claude Code is the reasoning layer; the Go CLI is deterministic
+
+The system must produce trustworthy, reproducible protocol research, and the user already works inside Claude Code. We will build a deterministic Go CLI plus Skills and AGENTS.md methodology, with no LLM calls inside Go. A standalone Go agent, an MCP-first design, and a pure CLI were considered: a standalone agent duplicates context, prompt, and UI work; MCP is premature before tool contracts stabilize; a pure CLI loses the conversational workflow. The CLI's stable JSON output is the integration boundary, so an MCP wrapper or another agent host can be added later without rewriting research logic.

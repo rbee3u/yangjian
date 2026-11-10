@@ -1,0 +1,3 @@
+# Sourcify is the primary provenance source; Etherscan is a secondary cross-check
+
+Sourcify v2 is the primary source for verified source and provenance because it returns canonical metadata, standard JSON compiler input, source hashes, storage layout, compilation settings, explicit match modes, and proxy resolution without an API key. Etherscan V2 is a secondary cross-check: it requires a key and does not expose metadata or match flags, but adds broader chain coverage and explorer labels. Match modes are recorded and never conflated: Sourcify `match` is not `exact_match`, and Etherscan's UI "Exact Match" is not equivalent to Sourcify's mode.

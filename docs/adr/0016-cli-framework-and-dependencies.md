@@ -1,0 +1,3 @@
+# The CLI uses Cobra and a small pinned dependency set
+
+The CLI uses Cobra for nested commands, flags, help, and shell completion, with a deliberately small dependency set: go-ethereum v1.17.10, fxamacker/cbor/v2, golang.org/x/sync, and golang.org/x/time/rate. Logging uses the standard library `log/slog`; tests use the standard library `testing`. No ORM, logging framework, or test framework is introduced. Nested command ergonomics matter for both humans and the agent, and the maintenance cost of a custom dispatcher is higher than Cobra's dependency cost. go-ethereum upgrades are reviewed separately and checked with `govulncheck`.

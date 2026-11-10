@@ -1,0 +1,3 @@
+# Providers are profiled; immutable responses are cached; concurrency is bounded
+
+Each provider has a profile with endpoint, auth reference, capabilities, rate limit, timeout, and retry policy. Cache keys include chain ID, method, normalized parameters, and block hash or tag; immutable responses are stored as observations, while `latest` responses get a short TTL and are not written into long-term evidence. Retries apply only to 429, 5xx, and timeouts, with exponential backoff, jitter, at most three attempts, and `Retry-After` support. Concurrency is a bounded worker pool with per-dossier request and time budgets. This prevents 429 storms, keeps `latest` data from masquerading as historical evidence, and makes repeated research reproducible.

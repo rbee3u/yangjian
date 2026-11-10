@@ -1,0 +1,3 @@
+# Entities use deterministic keys; observations and artifacts are content-addressed
+
+Entity IDs are deterministic and human-readable: `chainId:address` for a Contract, `chainId:address@block` for a ContractVersion, and `type:from:to:evidenceHash` for a Relation. Observations and artifacts are addressed by content hash (`sha256:...`) and deduplicated. Random UUIDs would make reruns and cross-machine comparisons unstable, and hashing mutable entities would change their identity on every field update. Deterministic keys keep Git diffs readable and let reports cite stable entities alongside immutable evidence.

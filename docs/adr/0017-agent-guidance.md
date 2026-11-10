@@ -1,0 +1,3 @@
+# Global rules live in AGENTS.md; workflows live in Skills; schemas are the tool contract
+
+The root `AGENTS.md` contains only stable global rules: evidence requirements, the no-guessing rule, read-only defaults, language conventions, tool invocation, and the output contract. Research workflows live in `.claude/skills/<name>/SKILL.md` and load on demand; architecture and decisions live in `docs/`; JSON Schema files are the authoritative machine-readable tool contract. Putting workflows into AGENTS.md would make the global rules churn with every tool change, and relying on MCP descriptions is premature while MCP is out of MVP scope. This split keeps the always-loaded context small and the workflows versionable.

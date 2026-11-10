@@ -1,0 +1,3 @@
+# M1 derives structural facts from solc standard JSON; Slither and Foundry are deferred
+
+M1 derives inheritance and linearization, storage layout, immutables, ABI, method identifiers, and AST call sites from solc standard JSON. Call graphs and access-control semantics are heuristic or deferred, because no tool provides stable machine-readable JSON for them. Slither and Foundry are not invoked in M1: both may execute project tooling on untrusted source (`crytic-compile` framework auto-detection, Foundry `ffi = true`), and their outputs are detector or DOT oriented. Proxy detection is implemented in Go by reading EIP-1967, EIP-1822, and EIP-1167 slots and upgrade events; Sourcify's proxy resolution is used only as a current-state cross-check.

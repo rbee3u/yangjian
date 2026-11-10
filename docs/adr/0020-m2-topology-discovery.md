@@ -1,0 +1,3 @@
+# M2 discovers topology in evidence order and stops at an explicit budget
+
+M2 builds relations in layers: source constants and constructor arguments, on-chain reads (`getPool`, `factory()`, `token0()`, `token1()`, registry mappings), bounded factory events, pinned GitHub/npm deployment artifacts, then heuristics. Each step writes the matching relation type, and no `observed_call` relation is produced without a trace. Exploration is bounded by max depth 2, max 50 contracts, and max 1000 requests per dossier; exceeding a budget stops discovery and records an open question. Without these layers M2 would either miss dynamically created contracts or mistake static references for execution; without budgets the agent can recurse indefinitely.

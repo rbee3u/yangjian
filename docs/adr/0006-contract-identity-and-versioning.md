@@ -1,0 +1,3 @@
+# Contract identity is stable; behavior and source bindings are block-versioned
+
+A Contract is identified by `(chain ID, address)` and remains the same entity across proxy upgrades, while its implementation, source revision, ABI, and storage semantics are versioned by block range. Every on-chain observation records the block number and block hash; "latest" is a read-time alias, not an identity. Treating each block as a separate contract would fragment relations and reports, while treating an address as having one source would misrepresent upgradeable proxies. Immutable contracts collapse to a single version.

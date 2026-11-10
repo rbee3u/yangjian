@@ -1,0 +1,3 @@
+# CLI output uses a uniform JSON envelope and explicit exit codes
+
+Every command emits a versioned JSON envelope with `ok`, `data`, `error`, and `meta` fields; `meta` carries the command, chain ID, block number and hash when applicable, and duration. Exit codes are 0 for success, 1 for operational failure, 2 for usage errors, and 3 for partial success. Research pipelines often partially succeed (for example, source is verified but P2 fails), and a uniform envelope plus partial-success code lets the agent distinguish "no result" from "result with caveats." Per-command JSON shapes and stderr-only errors would multiply error handling and hide block context; ndjson events remain an optional progress channel, not the primary contract.

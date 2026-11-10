@@ -1,0 +1,3 @@
+# Relations carry their evidence type; static dependencies are not observed calls
+
+Relations are first-class and typed as `source_dependency`, `onchain_reference`, `observed_call`, or `inferred_relation`. Each type has its own evidence requirements and rendering style, so a source import, an address read from a factory, a traced call, and a heuristic guess can never collapse into the same edge. A single relation with a confidence score would hide the distinction the research constraints depend on, and folding inferred relations into static ones would repeat the static-dependency-as-call error. The MVP starts with source dependencies and on-chain references; observed calls follow when trace access returns.

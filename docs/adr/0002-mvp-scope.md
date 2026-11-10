@@ -1,0 +1,3 @@
+# MVP scope is Ethereum protocol research, not auditing, multi-chain delivery, or indexing
+
+The MVP exists to make protocol structure and behavior explainable from verifiable evidence. Its primary use case is protocol understanding and source/deployment research; transaction forensics is secondary; vulnerability discovery, multi-chain delivery, and historical indexing are out of scope. Auditing requires detector semantics, dataflow analysis, fuzzing, and a different quality bar; multi-chain delivery multiplies explorer and trace-provider differences; indexing is a separate product. The MVP targets Ethereum mainnet with chain-parameterized boundaries, and treats history as point-in-time reads rather than scans.

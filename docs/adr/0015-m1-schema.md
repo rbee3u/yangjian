@@ -1,0 +1,3 @@
+# M1 uses a typed core schema with explicit evidence references
+
+M1 persists a versioned core schema: Observation, Contract, ContractVersion, SourceRevision, Relation, and Manifest. Every derived entity carries `evidence_refs` back to content-addressed observations; unknown fields are preserved on read, and `schema_version` gates migrations. The JSON Schema files are the authoritative machine contract used by the CLI, tests, and the coding agent. A minimal address/code/source schema would force provenance to live outside the data model, and schemaless JSON would make the evidence chain unverifiable; the typed core costs more upfront but keeps every claim reproducible.
