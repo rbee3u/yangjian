@@ -2,7 +2,7 @@
 
 Status: Draft for approval · 2026-11-10
 
-Current status: pool discovery, `code`, `source`, `provenance`, `analyze` (proxy detection plus static structure), `state` (including pool immutables and three `onchain_reference` relations), and `report` are implemented and live-verified for the Uniswap V3 USDC/WETH 0.3% Pool. The latest verified run used block 26385477: the pool was discovered from the factory at that block, P2 matched 22142 runtime bytes with 27 immutables masked, proxy type was `none`, and static analysis recorded 9 contracts in the linearization, 9 storage entries, 7 immutable variables, 26 method identifiers, and 94 call sites (23 internal, 5 external, 64 library, 2 low-level `staticcall`, no delegatecall). P1 metadata binding, beacon implementation resolution, `source_dependency` relations, Etherscan cross-check, RPC and source-provider response caching, and `--refresh` are also implemented. Remaining M1 work: JSON Schemas and fixtures/golden tests. Etherscan live acceptance is skipped until an API key is configured; the client and comparison logic are covered by offline tests. A later live run at block 26385667 produced 164 `source_dependency` relations, three `onchain_reference` relations, and an Etherscan cross-check status of `skipped` because no key was set.
+Current status: M1 Contract Dossier and M2 Protocol Dossier are implemented. The M1 pipeline covers pool discovery, `code`, `source`, `provenance`, `analyze` (proxy detection plus static structure), `state` (pool immutables and three `onchain_reference` relations), and `report`. The latest M2 live run at block 26385739 discovered the Uniswap V3 USDC/WETH 0.3% pool from the factory, produced P2/proven for Factory, Pool, NPM, and SwapRouter02, recorded protocol relations (`getPool`, `factory`, `WETH9`), aggregated 7 `onchain_reference` relations and the contract `source_dependency` relations, and finished with manifest status `complete`. P1 metadata binding, beacon implementation resolution, Etherscan cross-check, RPC/provider caching, and `--refresh` are implemented. Remaining M1 work: JSON Schemas and fixtures/golden tests. Etherscan live acceptance is skipped until an API key is configured; the client and comparison logic are covered by offline tests.
 
 ## M0 — Design
 
@@ -43,14 +43,14 @@ Goal: seeded Factory/entrypoint → related contracts → topology report, witho
 
 Steps:
 
-1. Target registry entry with official Uniswap deployment URL and retrieval date.
-2. Discover USDC/WETH 0.3% pool via `getPool`; bounded factory events optional.
-3. Contract dossiers for Factory, Pool, and NonfungiblePositionManager; Router if source is available.
-4. Relations: Factory→Pool, Pool→tokens/factory, NPM→Factory/positions, Router→Factory/tokens via source constants and on-chain reads; no `observed_call`.
-5. Topology and architecture diagrams; protocol report; manifest; open questions.
-6. Respect budgets: depth 2, 50 contracts, 1000 requests per dossier.
+1. Target registry entry with official Uniswap deployment URL and retrieval date (implemented).
+2. Discover USDC/WETH 0.3% pool via `getPool`; bounded factory events optional (implemented without the optional event scan).
+3. Contract dossiers for Factory, Pool, and NonfungiblePositionManager; Router if source is available (implemented; Router is selected from the registry).
+4. Relations: Factory→Pool, Pool→tokens/factory, NPM→Factory, Router→Factory/WETH9 via pinned-block on-chain reads; source dependencies stay in contract dossiers and are aggregated; no `observed_call` (implemented).
+5. Topology and architecture diagrams; protocol report; manifest; open questions (implemented).
+6. Respect budgets: default 50 contracts and 1000 observations per dossier run, with depth 2 by construction (implemented).
 
-Definition of done: the Uniswap V3 deployment topology is reproducible from evidence, with every relation typed and sourced; trace-dependent sequence diagrams are explicitly deferred.
+Definition of done: the Uniswap V3 deployment topology is reproducible from evidence, with every relation typed and sourced; trace-dependent sequence diagrams are explicitly deferred. The live M2 acceptance run is recorded in `research/1/protocols/uniswap-v3/`.
 
 ## M3 — Historical state (deferred)
 

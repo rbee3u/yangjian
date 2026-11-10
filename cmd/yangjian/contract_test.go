@@ -3,9 +3,15 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/rbee3u/yangjian/internal/config"
+)
+
+const (
+	testToken0 = "0x2222222222222222222222222222222222222222"
+	testToken1 = "0x3333333333333333333333333333333333333333"
 )
 
 const testRegistry = `{
@@ -19,8 +25,8 @@ const testRegistry = `{
     "source_retrieved_at": "2026-11-10T00:00:00Z",
     "contracts": {"factory": "0x1111111111111111111111111111111111111111"},
     "tokens": {
-      "USDC": "0x2222222222222222222222222222222222222222",
-      "WETH": "0x3333333333333333333333333333333333333333"
+      "USDC": "` + testToken0 + `",
+      "WETH": "` + testToken1 + `"
     },
     "acceptance": {"pool_pair": ["USDC", "WETH"], "fee_tier": 3000, "pool_discovery": "getPool"}
   }]
@@ -51,10 +57,10 @@ func TestResolveDiscoverySymbols(t *testing.T) {
 	if factory.Hex() != "0x1111111111111111111111111111111111111111" {
 		t.Fatalf("factory = %s", factory.Hex())
 	}
-	if token0.Hex() != "0x2222222222222222222222222222222222222222" {
+	if !strings.EqualFold(token0.Hex(), testToken0) {
 		t.Fatalf("token0 = %s", token0.Hex())
 	}
-	if token1.Hex() != "0x3333333333333333333333333333333333333333" {
+	if !strings.EqualFold(token1.Hex(), testToken1) {
 		t.Fatalf("token1 = %s", token1.Hex())
 	}
 }
@@ -63,8 +69,8 @@ func TestResolveDiscoveryExplicitAddresses(t *testing.T) {
 	cfg := config.Default()
 	factory, token0, token1, err := resolveDiscovery(cfg, 1, &discoverOptions{
 		factory: "0x1111111111111111111111111111111111111111",
-		token0:  "0x2222222222222222222222222222222222222222",
-		token1:  "0x3333333333333333333333333333333333333333",
+		token0:  testToken0,
+		token1:  testToken1,
 		fee:     500,
 	})
 	if err != nil {

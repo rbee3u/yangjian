@@ -10,7 +10,7 @@
       "name": "Uniswap V3",
       "chain_id": 1,
       "source_url": "https://developers.uniswap.org/docs/protocols/v3/deployments/v3-ethereum-deployments",
-      "source_retrieved_at": "2026-11-10T00:00:00Z",
+      "source_retrieved_at": "2026-11-11T00:00:00Z",
       "source_modified_at": "2026-08-25T05:58:55Z",
       "contracts": {
         "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
@@ -29,15 +29,15 @@
         "v3_staker": "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65"
       },
       "tokens": {
-        "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        "WETH": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        "USDC": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "WETH": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
       },
       "acceptance": {
         "pool_pair": ["USDC", "WETH"],
         "fee_tier": 3000,
         "pool_discovery": "UniswapV3Factory.getPool(USDC, WETH, 3000)"
       },
-      "notes": "Pool addresses are discovered at runtime from the factory and are never seeded. SwapRouter v1 is intentionally omitted; M2 uses SwapRouter02. The Uniswap v3 deployment table is the source of every address above."
+      "notes": "Pool addresses are discovered at runtime from the factory and are never seeded. SwapRouter v1 is intentionally omitted; M2 uses SwapRouter02. Contract addresses come from the Uniswap v3 deployment table; token addresses come from the getPool example on the same official page."
     }
   ]
 }

@@ -144,6 +144,26 @@ type TargetRef struct {
 	ProtocolSlug string `json:"protocol_slug,omitempty"`
 }
 
+type Protocol struct {
+	SchemaVersion      string   `json:"schema_version"`
+	ID                 string   `json:"id"`
+	Name               string   `json:"name"`
+	Aliases            []string `json:"aliases,omitempty"`
+	Deployments        []string `json:"deployments"`
+	TargetRegistryRefs []string `json:"target_registry_refs"`
+	EvidenceRefs       []string `json:"evidence_refs"`
+}
+
+type Deployment struct {
+	SchemaVersion      string   `json:"schema_version"`
+	ID                 string   `json:"id"`
+	ProtocolID         string   `json:"protocol_id"`
+	ChainID            int64    `json:"chain_id"`
+	Block              BlockRef `json:"block"`
+	ContractVersionIDs []string `json:"contract_version_ids"`
+	EvidenceRefs       []string `json:"evidence_refs"`
+}
+
 type Manifest struct {
 	SchemaVersion     string     `json:"schema_version"`
 	DossierType       string     `json:"dossier_type"`
@@ -157,6 +177,8 @@ type Manifest struct {
 	ObservationIDs    []string   `json:"observation_ids"`
 	SourceRevisionIDs []string   `json:"source_revision_ids,omitempty"`
 	RelationIDs       []string   `json:"relation_ids"`
+	ProtocolIDs       []string   `json:"protocol_ids,omitempty"`
+	DeploymentIDs     []string   `json:"deployment_ids,omitempty"`
 	OpenQuestions     []string   `json:"open_questions"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`

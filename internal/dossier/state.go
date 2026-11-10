@@ -186,10 +186,6 @@ func RunState(ctx context.Context, params StateParams) (StateResult, error) {
 	}
 	manifest.Artifacts = appendUniqueArtifact(manifest.Artifacts, saved)
 	manifest.OpenQuestions = removeString(manifest.OpenQuestions, "state reads not run")
-	if !tick.Initialized {
-		manifest.OpenQuestions = appendUnique(manifest.OpenQuestions,
-			fmt.Sprintf("current tick %d is not initialized; ticks() returned zero values", tick.Tick))
-	}
 	manifest.Status = "partial"
 	manifest.UpdatedAt = now
 	if _, err := params.Store.WriteJSON("manifest.json", manifest); err != nil {

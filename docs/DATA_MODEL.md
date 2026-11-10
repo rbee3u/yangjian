@@ -117,7 +117,7 @@ No random UUIDs. Observations and artifacts are deduplicated by content hash.
 Type-specific requirements:
 
 - `source_dependency`: source path and symbol. Import relations point from `source:<revision>#<path>` to a content-addressed source file; inheritance relations point from a derived source coordinate to its base contract coordinate. Attributes record `relation`, `source_path`, `symbol`, and `source_revision_id`.
-- `onchain_reference`: method or event, block number/hash. M1 pool relations record `method`, `selector`, `address`, `block_hash`, and `observation_id`.
+- `onchain_reference`: method or event, block number/hash. M1 pool relations record `method`, `selector`, `address`, `block_hash`, and `observation_id`. Protocol dossiers additionally record `role`/`source_role` and, for NPM/Router factory reads, whether the returned address matches the registry factory. Protocol `relations.json` aggregates protocol-owned relations with relations read from referenced contract dossiers; contract dossiers remain the owners.
 - `observed_call`: transaction hash, trace reference, call path.
 - `inferred_relation`: heuristic name and rule version; never rendered as a fact.
 
@@ -133,6 +133,8 @@ Type-specific requirements:
 | `static_analysis` | Derived source structure: inheritance, storage layout, immutables, methods, call sites |
 | `discovery` | Factory lookup inputs, pinned block, `getPool` result, and discovered runtime code |
 | `state` | Pinned-block pool state and immutables |
+| `protocol`, `deployment` | M2 derived entities |
+| `protocol_result` | Protocol dossier summary (`protocol.json`) |
 | `report`, `topology`, `architecture`, `relations`, `evidence` | Human and machine report outputs |
 
 Artifact paths and hashes are recorded in the manifest; `evidence.json` is a
@@ -192,14 +194,16 @@ A discovery dossier is not a Contract Dossier. Its target is the factory address
 | `contract_ids` | string[] | |
 | `observation_ids` | string[] | |
 | `source_revision_ids` | string[] | optional; one per resolved source revision |
-| `relation_ids` | string[] | |
+| `relation_ids` | string[] | protocol dossiers list their own relations; contract relations stay in contract dossiers |
+| `protocol_ids` | string[] | optional; protocol dossiers |
+| `deployment_ids` | string[] | optional; protocol dossiers |
 | `open_questions` | string[] | |
 | `created_at` | RFC3339 | |
 | `updated_at` | RFC3339 | |
 
-## M2 extensions (planned)
+## M2 entities
 
-M1 is contract-centric. M2 adds two entities; they are documented here so the schema can evolve without restructuring.
+M1 is contract-centric. M2 adds two entities and references contract dossiers by address instead of duplicating them.
 
 **Protocol**
 

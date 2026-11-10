@@ -32,7 +32,7 @@ Claude Code composes research; Yangjian never calls an LLM. All external access 
 | `internal/model` | Observation, Contract, ContractVersion, SourceRevision, Relation, Manifest |
 | `internal/store` | File-first store, content addressing, observation deduplication |
 | `internal/dossier` | M1 staged pipeline: code, source, provenance, analyze, state, report |
-| `internal/protocol` | M2 layered topology discovery (planned) |
+| `internal/protocol` | M2 protocol dossier orchestration, topology discovery, budgets, relations |
 | `internal/version` | Version, commit, build date |
 
 ## 3. Data flow
@@ -61,12 +61,23 @@ source tree and does not treat static call sites as observed calls.
 M2 Protocol Dossier:
 
 ```
-seeded Factory / entrypoint
-  → getPool / factory reads / bounded events
-  → contract dossiers for discovered contracts
-  → relation graph
-  → topology.mmd, protocol report, manifest
+target registry entry
+  → pinned block
+  → getPool(USDC, WETH, 3000) on the seeded factory + pool runtime code
+  → contract dossiers for Factory, Pool, NPM, and SwapRouter02
+  → protocol-owned evidence for getPool, factory(), WETH9()
+  → aggregated contract relations (pool tokens/factory, source dependencies)
+  → protocol/deployment entities
+  → topology.mmd, architecture.mmd, protocol report, relations.json,
+    evidence.json, manifest.json
 ```
+
+The protocol orchestrator reuses the M1 contract pipeline per address and passes
+the same pinned block to every contract dossier. It owns only relations that
+cross contract-dossier boundaries; contract-level relations stay in the contract
+dossiers and are aggregated in `relations.json` without copying artifacts. The
+M2 run does not issue logs or trace calls, so no `observed_call` relation is
+possible.
 
 ## 4. Adapter boundaries
 

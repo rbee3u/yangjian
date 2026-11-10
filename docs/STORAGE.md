@@ -68,12 +68,22 @@ The manifest target is the factory. Discovery dossiers do not create Contract en
 ```
 research/<chain-id>/protocols/<slug>/
   manifest.json
+  observations/<hash>.json
+  entities/
+    protocols/<slug>.json
+    deployments/<hash>.json
+    relations/<hash>.json
+  artifacts/
+    discovery.json
+  protocol.json
   report.md
-  diagrams/
-    topology.mmd
+  topology.mmd
+  architecture.mmd
+  relations.json
+  evidence.json
 ```
 
-Protocol dossiers reference contract dossiers by `(chain ID, address)`; they do not copy contract artifacts.
+Protocol dossiers reference contract dossiers by `(chain ID, address)`; they do not copy contract artifacts. `relations.json` aggregates protocol-owned relations with the relations read from each referenced contract dossier; `evidence.json` indexes the protocol observations and contract summaries. Contract dossiers remain the owners of their own artifacts and evidence.
 
 ## File roles
 

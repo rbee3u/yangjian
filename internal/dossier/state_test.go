@@ -250,14 +250,10 @@ func TestRunStateUninitializedTick(t *testing.T) {
 	if err := st.ReadJSON("manifest.json", &manifest); err != nil {
 		t.Fatal(err)
 	}
-	found := false
 	for _, question := range manifest.OpenQuestions {
 		if strings.Contains(question, "is not initialized") {
-			found = true
+			t.Fatalf("uninitialized tick is chain state, not an open question: %v", manifest.OpenQuestions)
 		}
-	}
-	if !found {
-		t.Fatalf("open questions = %v", manifest.OpenQuestions)
 	}
 }
 

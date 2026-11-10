@@ -47,7 +47,7 @@ func TestTargetValidate(t *testing.T) {
 		SourceURL:         "https://example.com",
 		SourceRetrievedAt: time.Now(),
 		Contracts:         map[string]string{"factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984"},
-		Tokens:            map[string]string{"USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
+		Tokens:            map[string]string{"USDC": "0x0000000000000000000000000000000000000001"},
 		Acceptance:        Acceptance{PoolPair: []string{"A", "B"}, FeeTier: 3000, PoolDiscovery: "getPool"},
 	}
 	if err := valid.Validate(); err != nil {

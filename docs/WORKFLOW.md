@@ -65,18 +65,23 @@ A bytecode mismatch is a valid negative result: the dossier stays `partial`, the
 
 ## M2 — Protocol Dossier
 
-1. Load target registry entry with official deployment source URL and retrieval date.
-2. From the seeded Factory, call `getPool` for the target pair/fee; optionally scan bounded `PoolCreated` events.
-3. Run Contract Dossiers for Factory, Pool, and NonfungiblePositionManager; Router if its source is available.
-4. Build relations:
-   - Factory → Pool: `onchain_reference` via `getPool`/event.
-   - Pool → token0/token1/factory: `onchain_reference`.
-   - NPM → Factory/positions: `onchain_reference` and `source_dependency`.
-   - Router → Factory/tokens: `source_dependency`/`onchain_reference` where verified.
-5. Emit topology/architecture diagrams and a protocol report.
-6. Stop at budgets: depth 2, 50 contracts, 1000 requests per dossier.
+```sh
+yangjian protocol dossier --chain 1 --target uniswap-v3 --block latest --json
+```
 
-No `observed_call` relation and no sequence diagram until trace access exists.
+1. Load the target registry entry with its official deployment source URL, retrieval date, contract addresses, and token addresses.
+2. Pin one block, then call `getPool(token0, token1, fee)` on the seeded Factory at that block and fetch the pool runtime code.
+3. Run Contract Dossiers at the same block for Factory, Pool, and NonfungiblePositionManager; Router if the registry provides it. Contract dossiers stay at `research/<chain>/contracts/<address>/`.
+4. Build relations:
+   - Factory → Pool: `onchain_reference` from the `getPool` observation.
+   - Pool → token0/token1/factory: `onchain_reference` from the pool's State stage.
+   - NPM → Factory and Router → Factory: `onchain_reference` from `factory()` at the pinned block.
+   - Router → WETH9: `onchain_reference` from `WETH9()` at the pinned block.
+   - Source imports/inheritance remain `source_dependency` relations in each contract dossier and are aggregated in the protocol's `relations.json`.
+5. Emit `topology.mmd`, `architecture.mmd`, `report.md`, `relations.json`, `evidence.json`, and a protocol manifest.
+6. Stop at budgets: default 50 contract dossiers and 1000 observations across contract dossiers; both are CLI flags. Discovery runs before the budget check, so a missing pool is always recorded. No factory event scan or depth-recursive crawl is performed in this version.
+
+A contract dossier failure is recorded in `open_questions` and the remaining contracts still run. A returned address that disagrees with the registry is recorded as an open question; it is not silently trusted. No `observed_call` relation and no sequence diagram is emitted until trace access exists.
 
 ## Agent rules
 

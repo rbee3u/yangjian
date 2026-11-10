@@ -92,6 +92,41 @@ A successful P2 comparison sets `provenance_level` to `P2` and `correspondence` 
 
 `--refresh` bypasses the RPC response cache and the Sourcify/Etherscan HTTP cache. Cached entries are written under `.yangjian/cache/`; the cache key includes the provider profile, method, normalized parameters, and block number/tag. `latest` header lookups are not served from cache.
 
+## M2 commands
+
+### `yangjian protocol dossier`
+
+Builds a Protocol Dossier from a target registry entry. It pins one block, discovers the acceptance pool from the registry factory, runs Contract Dossiers for the factory, pool, NonfungiblePositionManager, and SwapRouter02 (or `swap_router` when configured), and aggregates their evidence.
+
+| Flag | Description |
+|---|---|
+| `--chain <id>` | Chain ID; default from config |
+| `--target <slug>` | Target registry entry; required |
+| `--block latest\|<n>` | Block to pin for every discovery and contract read; default `latest` |
+| `--out <dir>` | Protocol dossier directory; default `research/<chain>/protocols/<slug>` |
+| `--contracts-root <dir>` | Contract dossier root; default `research/<chain>/contracts` |
+| `--max-contracts <n>` | Maximum contract dossiers; default `50` |
+| `--max-requests <n>` | Maximum observations across contract dossiers; default `1000` |
+| `--refresh` | Ignore cached RPC and provider responses |
+| `--json` / `--text` | Output mode; JSON is the default |
+
+The command:
+
+1. Loads the target registry entry and validates its chain.
+2. Pins a block and records `eth_getBlockByNumber`.
+3. Calls `UniswapV3Factory.getPool(token0, token1, fee)` at that block and fetches the returned pool's runtime code. A zero result or empty code is recorded as an open question; no address is invented.
+4. Runs the M1 contract pipeline for each selected role at the same pinned block. Contract reports and manifests remain under `--contracts-root`.
+5. Records protocol-owned `onchain_reference` relations for `getPool`, NPM `factory()`, Router `factory()`, and Router `WETH9()`. A mismatch between a returned address and the registry factory is recorded, not hidden. Pool `token0()`/`token1()`/`factory()` relations come from the pool's contract dossier.
+6. Writes `protocol.json`, `report.md`, `topology.mmd`, `architecture.mmd`, `relations.json`, `evidence.json`, Protocol/Deployment entities, and a protocol manifest.
+
+The manifest status is `complete` only when there are no open questions. A contract-level failure is recorded as an open question and the remaining contracts still run; no trace, log, or event is read, so the dossier never contains an `observed_call` relation.
+
+Example:
+
+```sh
+yangjian protocol dossier --chain 1 --target uniswap-v3 --block latest --json
+```
+
 ## Envelope
 
 Success:
@@ -176,6 +211,5 @@ The chain adapter permits only read methods (`eth_chainId`, `eth_blockNumber`, `
 
 ## Future commands
 
-- `yangjian protocol dossier --chain 1 --target uniswap-v3 ...` (M2).
 - `yangjian trace ...` (after a trace provider).
 - `yangjian query ...` (optional, after a SQLite index).
