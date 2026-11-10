@@ -25,25 +25,40 @@ type SourceFetcher interface {
 }
 
 type SourceParams struct {
-	ChainID int64
-	Address common.Address
-	Store   *store.Store
-	RunID   string
-	Fetcher SourceFetcher
+	ChainID              int64
+	Address              common.Address
+	Store                *store.Store
+	RunID                string
+	Fetcher              SourceFetcher
+	CrossCheck           SourceFetcher
+	CrossCheckName       string
+	CrossCheckSkipReason string
+}
+
+type CrossCheckResult struct {
+	Provider        string   `json:"provider"`
+	Status          string   `json:"status"`
+	Differences     []string `json:"differences,omitempty"`
+	ObservationID   string   `json:"observation_id,omitempty"`
+	Artifact        string   `json:"artifact,omitempty"`
+	RawArtifact     string   `json:"raw_artifact,omitempty"`
+	CompilerVersion string   `json:"compiler_version,omitempty"`
+	SourceCount     int      `json:"source_count,omitempty"`
 }
 
 type SourceResult struct {
-	SourceRevisionID     string   `json:"source_revision_id"`
-	RegistryMatch        string   `json:"registry_match"`
-	Compiler             string   `json:"compiler"`
-	SourceCount          int      `json:"source_count"`
-	SourceHashMismatches int      `json:"source_hash_mismatches"`
-	MissingSources       int      `json:"missing_sources"`
-	ProvenanceLevel      string   `json:"provenance_level"`
-	Correspondence       string   `json:"correspondence"`
-	BlockNumber          uint64   `json:"block_number"`
-	BlockHash            string   `json:"block_hash"`
-	ObservationIDs       []string `json:"observation_ids"`
+	SourceRevisionID     string            `json:"source_revision_id"`
+	RegistryMatch        string            `json:"registry_match"`
+	Compiler             string            `json:"compiler"`
+	SourceCount          int               `json:"source_count"`
+	SourceHashMismatches int               `json:"source_hash_mismatches"`
+	MissingSources       int               `json:"missing_sources"`
+	ProvenanceLevel      string            `json:"provenance_level"`
+	Correspondence       string            `json:"correspondence"`
+	BlockNumber          uint64            `json:"block_number"`
+	BlockHash            string            `json:"block_hash"`
+	ObservationIDs       []string          `json:"observation_ids"`
+	CrossCheck           *CrossCheckResult `json:"cross_check,omitempty"`
 }
 
 func RunSource(ctx context.Context, params SourceParams) (SourceResult, error) {
@@ -264,6 +279,92 @@ func RunSource(ctx context.Context, params SourceParams) (SourceResult, error) {
 			sourceRevision.EvidenceRefs = appendUnique(existing.EvidenceRefs, obs.ID)
 		}
 	}
+	observationIDs := []string{obs.ID}
+	manifest.OpenQuestions = removeMatching(manifest.OpenQuestions, "Etherscan cross-check")
+	var crossCheck *CrossCheckResult
+	providerName := params.CrossCheckName
+	if providerName == "" {
+		providerName = "etherscan"
+	}
+	switch {
+	case params.CrossCheck != nil:
+		crossCheck = &CrossCheckResult{Provider: providerName, Status: "unavailable"}
+		secondary, fetchErr := params.CrossCheck.Fetch(ctx, params.ChainID, address)
+		if fetchErr != nil {
+			crossCheck.Differences = []string{fetchErr.Error()}
+			manifest.OpenQuestions = appendUnique(manifest.OpenQuestions,
+				"Etherscan cross-check unavailable: "+truncateText(fetchErr.Error(), 300))
+		} else {
+			matched, differences := source.CompareRecords(record, secondary)
+			crossCheck.Differences = differences
+			crossCheck.CompilerVersion = secondary.Compilation.CompilerVersion
+			crossCheck.SourceCount = len(secondary.Sources)
+			artifactRel := fmt.Sprintf("artifacts/%s-response.json", providerName)
+			if err := writeArtifact(providerName+"_response", artifactRel, secondary.Raw); err != nil {
+				return SourceResult{}, err
+			}
+			crossCheck.RawArtifact = artifactRel
+			crossObservation, err := params.Store.WriteObservation(model.Observation{
+				SchemaVersion: model.SchemaVersion,
+				Kind:          "source_crosscheck",
+				RunID:         params.RunID,
+				Request: map[string]any{
+					"provider": providerName,
+					"chain_id": params.ChainID,
+					"address":  address,
+					"primary":  "sourcify",
+				},
+				ResponseHash: model.ContentHash(secondary.Raw),
+				Block:        &manifest.Block,
+				RetrievedAt:  now,
+				Source:       model.SourceRef{Provider: providerName, Version: "v2", EndpointClass: "registry"},
+				Meta: map[string]any{
+					"matched":          matched,
+					"differences":      differences,
+					"compiler_version": secondary.Compilation.CompilerVersion,
+					"source_count":     len(secondary.Sources),
+				},
+			})
+			if err != nil {
+				return SourceResult{}, fmt.Errorf("write cross-check observation: %w", err)
+			}
+			crossCheck.ObservationID = crossObservation.ID
+			observationIDs = append(observationIDs, crossObservation.ID)
+			sourceRevision.RegistrySources = append(sourceRevision.RegistrySources, model.RegistrySource{
+				Provider:    providerName,
+				Address:     address,
+				RetrievedAt: now,
+			})
+			if matched {
+				crossCheck.Status = "match"
+			} else {
+				crossCheck.Status = "mismatch"
+				manifest.OpenQuestions = appendUnique(manifest.OpenQuestions,
+					"Etherscan cross-check mismatch: "+truncateText(strings.Join(differences, "; "), 300))
+			}
+		}
+	case params.CrossCheckSkipReason != "":
+		crossCheck = &CrossCheckResult{
+			Provider:    providerName,
+			Status:      "skipped",
+			Differences: []string{params.CrossCheckSkipReason},
+		}
+		manifest.OpenQuestions = appendUnique(manifest.OpenQuestions,
+			"Etherscan cross-check skipped: "+params.CrossCheckSkipReason)
+	}
+	if crossCheck != nil {
+		crossCheck.Artifact = "artifacts/source-crosscheck.json"
+		data, err := json.MarshalIndent(crossCheck, "", "  ")
+		if err != nil {
+			return SourceResult{}, fmt.Errorf("encode cross-check result: %w", err)
+		}
+		artifact, err := saveArtifact(params.Store, "source_crosscheck", crossCheck.Artifact, append(data, '\n'))
+		if err != nil {
+			return SourceResult{}, err
+		}
+		artifacts = append(artifacts, artifact)
+	}
+
 	if _, err := params.Store.WriteJSON(sourceRel, sourceRevision); err != nil {
 		return SourceResult{}, fmt.Errorf("write source revision: %w", err)
 	}
@@ -280,7 +381,9 @@ func RunSource(ctx context.Context, params SourceParams) (SourceResult, error) {
 		Hash: versionHash,
 	})
 
-	manifest.ObservationIDs = appendUnique(manifest.ObservationIDs, obs.ID)
+	for _, id := range observationIDs {
+		manifest.ObservationIDs = appendUnique(manifest.ObservationIDs, id)
+	}
 	manifest.SourceRevisionIDs = appendUnique(manifest.SourceRevisionIDs, sourceRevisionID)
 	for _, artifact := range artifacts {
 		manifest.Artifacts = appendUniqueArtifact(manifest.Artifacts, artifact)
@@ -326,7 +429,8 @@ func RunSource(ctx context.Context, params SourceParams) (SourceResult, error) {
 		Correspondence:       sourceRevision.Correspondence,
 		BlockNumber:          contractVersion.ValidFromBlock,
 		BlockHash:            manifest.Block.Hash,
-		ObservationIDs:       []string{obs.ID},
+		ObservationIDs:       observationIDs,
+		CrossCheck:           crossCheck,
 	}, nil
 }
 

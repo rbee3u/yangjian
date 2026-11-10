@@ -61,6 +61,7 @@ Resolves a factory-deployed contract for a token pair and fee tier at a pinned b
 | `--fee <uint24>` | Fee tier in hundredths of a bip |
 | `--block latest\|<n>` | Block to pin; default `latest` |
 | `--out <dir>` | Output directory; default `research/<chain>/discoveries/<factory>/<token0>-<token1>-<fee>` |
+| `--refresh` | Ignore cached RPC responses |
 | `--json` / `--text` | Output mode; JSON is the default |
 
 The command calls `getPool(address,address,uint24)` on the factory, fetches the returned address's runtime code at the same pinned block, and records three observations: block header, `eth_call`, and `eth_getCode`. It writes `discovery.json` and a manifest with `dossier_type: "discovery"`.
@@ -85,10 +86,11 @@ A successful P2 comparison sets `provenance_level` to `P2` and `correspondence` 
 ### Analyze, state, and report results
 
 - `analyze` probes EIP-1967 implementation/beacon/admin slots, the EIP-1822 PROXIABLE slot, and the EIP-1167 minimal-proxy bytecode pattern. A beacon proxy is resolved with `implementation()` at the same pinned block and the call is recorded. When P2 build evidence exists, `analyze` also reads the recorded solc output to extract inheritance linearization, storage layout, immutables, method identifiers, source imports, and call sites, and writes `source_dependency` relations. It updates `ContractVersion.proxy_type` and records `artifacts/proxy.json` and `artifacts/static.json`. When P2 build evidence is absent, proxy probing still runs and static structure is listed in `open_questions`.
+- `source` records a Sourcify source fetch, then optionally queries Etherscan V2 when `ETHERSCAN_API_KEY` (or the configured `api_key_env`) is set. The secondary record is compared on ABI, compiler settings, and source content hashes; `match`, `mismatch`, `unavailable`, and `skipped` are recorded in `data.source.cross_check` and `artifacts/source-crosscheck.json`. A cross-check never replaces the primary match or P1/P2 provenance.
 - `state` performs pinned-block `eth_call` reads for `slot0()`, `liquidity()`, `ticks(currentTick)`, and Uniswap V3 pool immutables. It records `artifacts/state.json` and writes three `onchain_reference` relations (token0, token1, factory).
 - `report` writes `report.md`, `topology.mmd`, `architecture.mmd`, `relations.json`, and `evidence.json`. It renders only recorded facts and lists missing stages in `open_questions`.
 
-`--refresh` is accepted for forward compatibility; M1 does not yet cache provider responses, so reads are always fresh.
+`--refresh` bypasses the RPC response cache and the Sourcify/Etherscan HTTP cache. Cached entries are written under `.yangjian/cache/`; the cache key includes the provider profile, method, normalized parameters, and block number/tag. `latest` header lookups are not served from cache.
 
 ## Envelope
 

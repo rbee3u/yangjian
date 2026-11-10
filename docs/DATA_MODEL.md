@@ -95,7 +95,7 @@ No random UUIDs. Observations and artifacts are deduplicated by content hash.
 | `registry_match` | enum | `exact_match`, `match`, `none`, `unknown` |
 | `provenance_level` | enum | `P0`, `P1`, `P2`, `P3` |
 | `correspondence` | enum | `proven` or `unproven` |
-| `registry_sources` | object[] | provider, address, retrieved_at |
+| `registry_sources` | object[] | provider, address, retrieved_at; includes Etherscan when a cross-check fetch succeeded |
 | `build` | object/null | P2 build evidence: compiler version and hashes, exact input/output refs, raw on-chain and recompiled bytecode refs, match, masked reference counts, byte lengths, first mismatch offset, warnings |
 | `evidence_refs` | string[] | required |
 
@@ -127,6 +127,7 @@ Type-specific requirements:
 |---|---|
 | `contract`, `contract_version` | Derived entities |
 | `sourcify_response`, `metadata`, `abi`, `std_json_input`, `storage_layout` | Registry source artifacts |
+| `etherscan_response`, `source_crosscheck` | Secondary source response and the structured comparison result |
 | `p2_std_json_input`, `solc_output`, `onchain_runtime`, `recompiled_runtime`, `solc_error` | P2 build evidence |
 | `proxy` | Proxy probe slots and resolved type/address |
 | `static_analysis` | Derived source structure: inheritance, storage layout, immutables, methods, call sites |

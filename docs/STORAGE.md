@@ -88,11 +88,14 @@ Protocol dossiers reference contract dossiers by `(chain ID, address)`; they do 
 
 ## Cache
 
-- `.yangjian/cache/` — solc binaries and temporary compiler directories; not committed.
-- Provider response caching is not implemented in M1; chain and Sourcify reads are
-  fetched fresh. `--refresh` is accepted but currently has no effect.
-- The planned cache key includes chain ID, method, normalized params, and block hash/tag;
-  `latest` responses will use a short TTL and will not be long-term evidence.
+- `.yangjian/cache/` — solc binaries, RPC responses, and provider HTTP responses; not committed.
+- RPC cache: `cache/rpc/<endpoint-hash>/<key-hash>.json`, keyed by method, normalized
+  parameters, and block number. Only pinned-block reads and pinned headers are served
+  from cache; `latest` header lookups are always fresh. `--refresh` bypasses reads.
+- Source cache: `cache/providers/{sourcify,etherscan}/<key-hash>.json`, keyed by request
+  method and URL. API keys are not stored in cache keys or entries.
+- Cached provider output is evidence for reruns, not a substitute for re-querying when
+  `--refresh` is requested.
 
 ## Fixtures
 

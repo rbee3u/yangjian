@@ -40,7 +40,7 @@ yangjian contract dossier \
 Stages:
 
 1. `code` — `eth_getCode`, runtime bytecode hash, block pinning, ContractVersion.
-2. `source` — Sourcify fetch; record match mode and compiler settings; Etherscan cross-check if configured.
+2. `source` — Sourcify fetch; record match mode and compiler settings; compare ABI, compiler settings, and source hashes with Etherscan V2 when an API key is configured, recording match/mismatch/skipped.
 3. `provenance` — P1 embedded-metadata/source/settings binding when `bytecodeHash` is not `none`; P2 rebuild in all cases; P0 fallback.
 4. `analyze` — proxy detection (EIP-1967, EIP-1822, EIP-1167, beacon with `implementation()` resolution). When a P2 build exists, parse the recorded solc output for the deployed contract's inheritance linearization, storage layout, immutable references, method identifiers, source imports, and call sites (internal, external, library, delegatecall, create). Emit `source_dependency` relations for imports and inheritance. Source structure is derived from the same compiler output that supports provenance, not from the latest GitHub tree.
 5. `state` — pinned-block calls: `slot0()`, `liquidity()`, `ticks(currentTick)`, plus pool immutables (`token0`, `token1`, `factory`, `fee`, `tickSpacing`, `maxLiquidityPerTick`). Emits `onchain_reference` relations for the three addresses.

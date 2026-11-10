@@ -62,6 +62,10 @@ func RunReport(params ReportParams) (ReportResult, error) {
 	if err != nil {
 		return ReportResult{}, err
 	}
+	crossCheck, err := loadCrossCheck(manifest, params.Store)
+	if err != nil {
+		manifest.OpenQuestions = appendUnique(manifest.OpenQuestions, "source cross-check artifact is unreadable")
+	}
 	state, err := loadState(manifest, params.Store)
 	if err != nil {
 		return ReportResult{}, err
@@ -108,6 +112,7 @@ func RunReport(params ReportParams) (ReportResult, error) {
 		Version:          version,
 		VersionPath:      versionPath,
 		Source:           source,
+		CrossCheck:       crossCheck,
 		State:            state,
 		Relations:        relations,
 		ABI:              contractABI,
@@ -228,6 +233,7 @@ type reportData struct {
 	Version          model.ContractVersion
 	VersionPath      string
 	Source           *model.SourceRevision
+	CrossCheck       *CrossCheckResult
 	State            *stateArtifact
 	Relations        []model.Relation
 	ABI              abi.ABI
@@ -290,6 +296,16 @@ func renderReport(data reportData) string {
 		row("Provenance level", data.Source.ProvenanceLevel)
 		row("Correspondence", data.Source.Correspondence)
 		b.WriteString("\n")
+		if data.CrossCheck != nil {
+			b.WriteString("### Source cross-check\n\n")
+			b.WriteString("| Field | Value |\n|---|---|\n")
+			row("Provider", data.CrossCheck.Provider)
+			row("Status", data.CrossCheck.Status)
+			row("Compiler", data.CrossCheck.CompilerVersion)
+			row("Source files", fmt.Sprintf("%d", data.CrossCheck.SourceCount))
+			row("Differences", strings.Join(data.CrossCheck.Differences, "; "))
+			b.WriteString("\nThe cross-check is secondary evidence; it does not replace the primary registry match or P1/P2 provenance.\n\n")
+		}
 		if data.Source.Build != nil {
 			build := data.Source.Build
 			b.WriteString("### P2 build evidence\n\n")
@@ -521,6 +537,20 @@ func renderStaticSection(b *strings.Builder, analysis *StaticAnalysis) {
 		}
 		b.WriteString("\n")
 	}
+}
+
+func loadCrossCheck(manifest model.Manifest, st *store.Store) (*CrossCheckResult, error) {
+	for _, artifact := range manifest.Artifacts {
+		if artifact.Kind != "source_crosscheck" {
+			continue
+		}
+		var result CrossCheckResult
+		if err := st.ReadJSON(artifact.Path, &result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+	return nil, nil
 }
 
 func loadStatic(manifest model.Manifest, st *store.Store) (*StaticAnalysis, error) {

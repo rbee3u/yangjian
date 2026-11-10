@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -44,6 +45,7 @@ type discoverOptions struct {
 	fee        uint32
 	block      string
 	out        string
+	refresh    bool
 }
 
 func (a *app) contractCommand() *cobra.Command {
@@ -85,6 +87,7 @@ func (a *app) contractCommand() *cobra.Command {
 	discoverCmd.Flags().Uint32Var(&discoverOpts.fee, "fee", 0, "fee tier in hundredths of a bip")
 	discoverCmd.Flags().StringVar(&discoverOpts.block, "block", "latest", "block number or latest")
 	discoverCmd.Flags().StringVar(&discoverOpts.out, "out", "", "output directory")
+	discoverCmd.Flags().BoolVar(&discoverOpts.refresh, "refresh", false, "ignore cached provider responses")
 	cmd.AddCommand(discoverCmd)
 	return cmd
 }
@@ -125,7 +128,7 @@ func (a *app) runContractDiscover(opts *discoverOptions) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
-	client, dialErr := chain.Dial(ctx, cfg.RPCProfile())
+	client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 	if dialErr != nil {
 		return a.fail("contract discover", envelope.CodeRPCUnavailable, dialErr, start, meta)
 	}
@@ -291,7 +294,7 @@ func (a *app) runContractDossier(opts *contractOptions) error {
 
 	if stage == "" || stage == "code" {
 		ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
-		client, dialErr := chain.Dial(ctx, cfg.RPCProfile())
+		client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 		if dialErr != nil {
 			cancel()
 			return a.fail("contract dossier", envelope.CodeRPCUnavailable, dialErr, start, meta)
@@ -315,18 +318,34 @@ func (a *app) runContractDossier(opts *contractOptions) error {
 
 	if stage == "" || stage == "source" {
 		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-		fetcher, fetchErr := source.NewSourcify(cfg.Providers.Sourcify)
+		fetcher, fetchErr := source.NewSourcifyWithCache(cfg.Providers.Sourcify, cfg.CacheDir, opts.refresh)
 		if fetchErr != nil {
 			cancel()
 			return a.fail("contract dossier", envelope.CodeConfigInvalid, fetchErr, start, meta)
 		}
-		sourceResult, err = dossier.RunSource(ctx, dossier.SourceParams{
+		sourceParams := dossier.SourceParams{
 			ChainID: chainID,
 			Address: address,
 			Store:   st,
 			RunID:   runID,
 			Fetcher: fetcher,
-		})
+		}
+		if keyEnv := cfg.Providers.Etherscan.APIKeyEnv; keyEnv != "" {
+			if apiKey := os.Getenv(keyEnv); apiKey != "" {
+				crossCheck, crossErr := source.NewEtherscanWithCache(cfg.Providers.Etherscan, apiKey, cfg.CacheDir, opts.refresh)
+				if crossErr != nil {
+					cancel()
+					return a.fail("contract dossier", envelope.CodeConfigInvalid, crossErr, start, meta)
+				}
+				sourceParams.CrossCheck = crossCheck
+				sourceParams.CrossCheckName = "etherscan"
+			} else {
+				sourceParams.CrossCheckSkipReason = keyEnv + " is not set"
+			}
+		} else {
+			sourceParams.CrossCheckSkipReason = "no Etherscan API key environment variable is configured"
+		}
+		sourceResult, err = dossier.RunSource(ctx, sourceParams)
 		cancel()
 		if err != nil {
 			code := envelope.CodeInternal
@@ -383,7 +402,7 @@ func (a *app) runContractDossier(opts *contractOptions) error {
 
 	if stage == "" || stage == "analyze" {
 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-		client, dialErr := chain.Dial(ctx, cfg.RPCProfile())
+		client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 		if dialErr != nil {
 			cancel()
 			return a.fail("contract dossier", envelope.CodeRPCUnavailable, dialErr, start, meta)
@@ -412,7 +431,7 @@ func (a *app) runContractDossier(opts *contractOptions) error {
 
 	if stage == "" || stage == "state" {
 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-		client, dialErr := chain.Dial(ctx, cfg.RPCProfile())
+		client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 		if dialErr != nil {
 			cancel()
 			return a.fail("contract dossier", envelope.CodeRPCUnavailable, dialErr, start, meta)
@@ -479,6 +498,13 @@ func (a *app) runContractDossier(opts *contractOptions) error {
 			fmt.Fprintf(a.out, "source: %s, compiler %s, %d files, provenance %s (%s)\n",
 				sourceResult.RegistryMatch, sourceResult.Compiler, sourceResult.SourceCount,
 				sourceResult.ProvenanceLevel, sourceResult.Correspondence)
+		}
+		if sourceResult.CrossCheck != nil {
+			fmt.Fprintf(a.out, "cross-check: %s %s", sourceResult.CrossCheck.Provider, sourceResult.CrossCheck.Status)
+			if len(sourceResult.CrossCheck.Differences) > 0 {
+				fmt.Fprintf(a.out, " (%s)", strings.Join(sourceResult.CrossCheck.Differences, "; "))
+			}
+			fmt.Fprintln(a.out)
 		}
 		if provenanceResult.Compiler != "" {
 			fmt.Fprintf(a.out, "provenance: P2 match=%t, compiler %s, %d immutables masked, %d bytes compared\n",
@@ -589,6 +615,16 @@ func parseBlock(value string) (*big.Int, error) {
 		return nil, fmt.Errorf("invalid block %q", value)
 	}
 	return n, nil
+}
+
+func cachedChain(ctx context.Context, cfg config.Config, chainID int64, refresh bool) (*chain.CachedClient, error) {
+	profile := cfg.RPCProfile()
+	client, err := chain.Dial(ctx, profile)
+	if err != nil {
+		return nil, err
+	}
+	namespace := chain.CacheNamespace(profile.Endpoint + "#" + strconv.FormatInt(chainID, 10))
+	return chain.WithCache(client, cfg.CacheDir, namespace, refresh), nil
 }
 
 func mapChainError(err error) envelope.Code {

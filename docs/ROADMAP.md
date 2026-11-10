@@ -2,7 +2,7 @@
 
 Status: Draft for approval · 2026-11-10
 
-Current status: pool discovery, `code`, `source`, `provenance`, `analyze` (proxy detection plus static structure), `state` (including pool immutables and three `onchain_reference` relations), and `report` are implemented and live-verified for the Uniswap V3 USDC/WETH 0.3% Pool. The latest verified run used block 26385477: the pool was discovered from the factory at that block, P2 matched 22142 runtime bytes with 27 immutables masked, proxy type was `none`, and static analysis recorded 9 contracts in the linearization, 9 storage entries, 7 immutable variables, 26 method identifiers, and 94 call sites (23 internal, 5 external, 64 library, 2 low-level `staticcall`, no delegatecall). P1 metadata binding, beacon implementation resolution, and `source_dependency` relations from imports/inheritance are also implemented. Remaining M1 work: Etherscan cross-check, JSON Schemas, fixtures/golden tests, and provider response caching.
+Current status: pool discovery, `code`, `source`, `provenance`, `analyze` (proxy detection plus static structure), `state` (including pool immutables and three `onchain_reference` relations), and `report` are implemented and live-verified for the Uniswap V3 USDC/WETH 0.3% Pool. The latest verified run used block 26385477: the pool was discovered from the factory at that block, P2 matched 22142 runtime bytes with 27 immutables masked, proxy type was `none`, and static analysis recorded 9 contracts in the linearization, 9 storage entries, 7 immutable variables, 26 method identifiers, and 94 call sites (23 internal, 5 external, 64 library, 2 low-level `staticcall`, no delegatecall). P1 metadata binding, beacon implementation resolution, `source_dependency` relations, Etherscan cross-check, RPC and source-provider response caching, and `--refresh` are also implemented. Remaining M1 work: JSON Schemas and fixtures/golden tests. Etherscan live acceptance is skipped until an API key is configured; the client and comparison logic are covered by offline tests. A later live run at block 26385667 produced 164 `source_dependency` relations, three `onchain_reference` relations, and an Etherscan cross-check status of `skipped` because no key was set.
 
 ## M0 — Design
 
@@ -15,8 +15,8 @@ Goal: given a chain and address from the target registry or explicit input, prod
 Steps:
 
 1. Go module scaffold, Cobra command, JSON envelope, config, model, file store.
-2. Chain client, provider profiles, block pinning, caching, rate limits, retries.
-3. Sourcify client (implemented); Etherscan cross-check (pending); source artifacts and match modes (implemented).
+2. Chain client, provider profiles, block pinning, RPC response caching, rate limits, retries (implemented).
+3. Sourcify client, source-provider response cache, and Etherscan cross-check (implemented; live Etherscan gated by an API key); source artifacts and match modes (implemented).
 4. Pinned solc manager and P2 rebuild (implemented); AST inheritance/C3 linearization, storage layout, immutables, method identifiers, and call sites parsed from the recorded solc output (implemented). Resource limits currently cover timeout, input size, output size, and a static-output read cap; OS memory/CPU rlimits remain an open question.
 5. Proxy detection (EIP-1967/1822/1167) with beacon `implementation()` resolution and ContractVersion update (implemented).
 6. Provenance pipeline: P1 embedded-metadata hash and source/settings binding; P2 when `bytecodeHash: none`; P0 fallback with explicit unproven marker. P1 and P2 implemented.
