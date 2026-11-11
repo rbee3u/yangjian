@@ -128,9 +128,17 @@ func (a *app) runFixtureRecord(opts *fixtureOptions) error {
 	defer cancel()
 	client, dialErr := chain.Dial(ctx, cfg.RPCProfile())
 	if dialErr != nil {
-		return a.fail("fixtures record", envelope.CodeRPCUnavailable, dialErr, start, meta)
+		return a.fail("fixtures record", chainDialErrorCode(dialErr), dialErr, start, meta)
 	}
 	defer client.Close()
+	actualChainID, err := client.ChainID(ctx)
+	if err != nil {
+		return a.fail("fixtures record", mapChainError(err), err, start, meta)
+	}
+	if actualChainID != chainID {
+		return a.fail("fixtures record", envelope.CodeConfigInvalid,
+			fmt.Errorf("rpc endpoint chain id %d does not match requested chain %d", actualChainID, chainID), start, meta)
+	}
 	header, err := client.HeaderByNumber(ctx, blockNumber)
 	if err != nil {
 		return a.fail("fixtures record", mapChainError(err), err, start, meta)

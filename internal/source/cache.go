@@ -96,7 +96,7 @@ func (t *cachedTransport) read(key string, request *http.Request) (*http.Respons
 		return nil, false
 	}
 	var cached cachedHTTPResponse
-	if err := json.Unmarshal(data, &cached); err != nil || cached.Key != key {
+	if err := json.Unmarshal(data, &cached); err != nil || cached.Key != cacheKeyID(key) {
 		return nil, false
 	}
 	return &http.Response{
@@ -114,7 +114,7 @@ func (t *cachedTransport) read(key string, request *http.Request) (*http.Respons
 
 func (t *cachedTransport) write(key string, response *http.Response, body []byte) error {
 	entry, err := json.Marshal(cachedHTTPResponse{
-		Key:    key,
+		Key:    cacheKeyID(key),
 		Status: response.StatusCode,
 		Header: response.Header,
 		Body:   body,
@@ -134,6 +134,12 @@ func (t *cachedTransport) write(key string, response *http.Response, body []byte
 }
 
 func (t *cachedTransport) path(key string) string {
+	return filepath.Join(t.dir, cacheKeyID(key)+".json")
+}
+
+// cacheKeyID keeps request URLs out of cache entries so API keys carried in
+// query strings are never written to disk.
+func cacheKeyID(key string) string {
 	sum := sha256.Sum256([]byte(key))
-	return filepath.Join(t.dir, hex.EncodeToString(sum[:])+".json")
+	return hex.EncodeToString(sum[:])
 }

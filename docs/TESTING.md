@@ -46,6 +46,7 @@ Cover at least:
 - Budget exceeded, context cancellation.
 - Invalid config, missing target registry entry.
 - Trace: method unsupported, invalid trace JSON, oversized trace, code check failure, transaction or receipt missing.
+- RPC chain-ID mismatch before any dossier evidence is written.
 
 ## Acceptance
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -102,6 +103,15 @@ func TestResolveDiscoveryRejectsInvalidInput(t *testing.T) {
 				t.Fatal("expected error")
 			}
 		})
+	}
+}
+
+func TestChainDialErrorCode(t *testing.T) {
+	if code := chainDialErrorCode(errChainIDMismatch); code != envelope.CodeConfigInvalid {
+		t.Fatalf("mismatch code = %s", code)
+	}
+	if code := chainDialErrorCode(context.DeadlineExceeded); code != envelope.CodeRPCUnavailable {
+		t.Fatalf("transport code = %s", code)
 	}
 }
 

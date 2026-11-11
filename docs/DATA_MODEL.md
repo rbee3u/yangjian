@@ -247,6 +247,7 @@ Contracts with `metadata.bytecodeHash = none` skip P1 and go directly to P2. If 
 
 - Every non-Manifest entity has at least one `evidence_ref`.
 - Every chain observation has `block.number` and `block.hash`.
+- Chain observations are only written after the provider's `eth_chainId` matches the requested chain ID.
 - `SourceRevision.registry_match` and `provenance_level` are required.
 - `ContractVersion` has a runtime bytecode hash or an explicit error observation.
 - Relation type-specific attributes are required as listed above.

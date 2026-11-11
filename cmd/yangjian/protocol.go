@@ -114,7 +114,7 @@ func (a *app) runProtocolDossier(opts *protocolOptions) error {
 	defer cancel()
 	client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 	if dialErr != nil {
-		return a.fail("protocol dossier", envelope.CodeRPCUnavailable, dialErr, start, meta)
+		return a.fail("protocol dossier", chainDialErrorCode(dialErr), dialErr, start, meta)
 	}
 	defer client.Close()
 	fetcher, fetchErr := source.NewSourcifyWithCache(cfg.Providers.Sourcify, cfg.CacheDir, opts.refresh)

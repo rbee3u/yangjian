@@ -130,7 +130,7 @@ func (a *app) runContractDiscover(opts *discoverOptions) error {
 	defer cancel()
 	client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 	if dialErr != nil {
-		return a.fail("contract discover", envelope.CodeRPCUnavailable, dialErr, start, meta)
+		return a.fail("contract discover", chainDialErrorCode(dialErr), dialErr, start, meta)
 	}
 	result, err := dossier.RunDiscover(ctx, dossier.DiscoverParams{
 		ChainID: chainID,
@@ -297,7 +297,7 @@ func (a *app) runContractDossier(opts *contractOptions) error {
 		client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 		if dialErr != nil {
 			cancel()
-			return a.fail("contract dossier", envelope.CodeRPCUnavailable, dialErr, start, meta)
+			return a.fail("contract dossier", chainDialErrorCode(dialErr), dialErr, start, meta)
 		}
 		codeResult, err = dossier.RunCode(ctx, client, dossier.CodeParams{
 			ChainID: chainID,
@@ -405,7 +405,7 @@ func (a *app) runContractDossier(opts *contractOptions) error {
 		client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 		if dialErr != nil {
 			cancel()
-			return a.fail("contract dossier", envelope.CodeRPCUnavailable, dialErr, start, meta)
+			return a.fail("contract dossier", chainDialErrorCode(dialErr), dialErr, start, meta)
 		}
 		analyzeResult, err = dossier.RunAnalyze(ctx, dossier.AnalyzeParams{
 			ChainID: chainID,
@@ -434,7 +434,7 @@ func (a *app) runContractDossier(opts *contractOptions) error {
 		client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 		if dialErr != nil {
 			cancel()
-			return a.fail("contract dossier", envelope.CodeRPCUnavailable, dialErr, start, meta)
+			return a.fail("contract dossier", chainDialErrorCode(dialErr), dialErr, start, meta)
 		}
 		stateResult, err = dossier.RunState(ctx, dossier.StateParams{
 			ChainID: chainID,
@@ -617,14 +617,32 @@ func parseBlock(value string) (*big.Int, error) {
 	return n, nil
 }
 
+var errChainIDMismatch = errors.New("rpc endpoint chain id mismatch")
+
 func cachedChain(ctx context.Context, cfg config.Config, chainID int64, refresh bool) (*chain.CachedClient, error) {
 	profile := cfg.RPCProfile()
 	client, err := chain.Dial(ctx, profile)
 	if err != nil {
 		return nil, err
 	}
+	actual, err := client.ChainID(ctx)
+	if err != nil {
+		client.Close()
+		return nil, fmt.Errorf("verify rpc chain id: %w", err)
+	}
+	if actual != chainID {
+		client.Close()
+		return nil, fmt.Errorf("%w: endpoint chain id %d, requested %d", errChainIDMismatch, actual, chainID)
+	}
 	namespace := chain.CacheNamespace(profile.Endpoint + "#" + strconv.FormatInt(chainID, 10))
 	return chain.WithCache(client, cfg.CacheDir, namespace, refresh), nil
+}
+
+func chainDialErrorCode(err error) envelope.Code {
+	if errors.Is(err, errChainIDMismatch) {
+		return envelope.CodeConfigInvalid
+	}
+	return envelope.CodeRPCUnavailable
 }
 
 func mapChainError(err error) envelope.Code {

@@ -77,7 +77,7 @@ func (a *app) runTraceTransaction(opts *traceOptions) error {
 	defer cancel()
 	client, dialErr := cachedChain(ctx, cfg, chainID, opts.refresh)
 	if dialErr != nil {
-		return a.fail("trace transaction", envelope.CodeRPCUnavailable, dialErr, start, meta)
+		return a.fail("trace transaction", chainDialErrorCode(dialErr), dialErr, start, meta)
 	}
 	defer client.Close()
 

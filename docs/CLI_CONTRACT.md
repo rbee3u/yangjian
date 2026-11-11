@@ -9,6 +9,7 @@ Status: Draft for approval · 2026-11-10
 - Exit codes: 0 success, 1 operational failure, 2 usage/config, 3 partial success.
 - Read-only: the CLI never accepts private keys, never signs, and never broadcasts.
 - Config precedence: CLI flag > environment > `.yangjian/config.json` (or `~/.config/yangjian/config.json`) > defaults.
+- Before a dossier reads a block or code, the CLI calls `eth_chainId` and refuses to label evidence if the provider's chain ID differs from `--chain` (`config_invalid`).
 
 ## M1 commands
 
@@ -65,7 +66,7 @@ Resolves a factory-deployed contract for a token pair and fee tier at a pinned b
 | `--refresh` | Ignore cached RPC responses |
 | `--json` / `--text` | Output mode; JSON is the default |
 
-The command calls `getPool(address,address,uint24)` on the factory, fetches the returned address's runtime code at the same pinned block, and records three observations: block header, `eth_call`, and `eth_getCode`. It writes `discovery.json` and a manifest with `dossier_type: "discovery"`.
+The command calls `getPool(address,address,uint24)` on the factory, fetches the returned address's runtime code at the same pinned block, and records the block header and `eth_call` observations plus an `eth_getCode` observation when the factory returns a nonzero address. It writes `discovery.json` and a manifest with `dossier_type: "discovery"`.
 
 The result reports `factory`, `token0`, `token1`, `fee`, `block`, `pool`, `found`, `pool_code_hash`, `pool_code_size`, and the observation IDs. `meta.status` is `complete` when a pool with runtime code is found, or when the factory definitively returns the zero address; it is `partial` when the factory returns an address with no runtime code.
 

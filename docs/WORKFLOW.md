@@ -24,7 +24,7 @@ yangjian contract discover --chain 1 --target uniswap-v3 \
   --token0 USDC --token1 WETH --fee 3000 --block latest --json
 ```
 
-It pins a block, calls `getPool(address,address,uint24)` on the registry factory, fetches the pool's runtime code, and writes a `discovery` dossier with the block header, call, and code observations. A zero pool is a complete negative result; a pool address with no code is `partial`.
+It pins a block, calls `getPool(address,address,uint24)` on the registry factory, fetches the pool's runtime code, and writes a `discovery` dossier with the block header and call observations, plus a code observation when the returned address is nonzero. A zero pool is a complete negative result; a pool address with no code is `partial`.
 
 Contract dossier command shape:
 

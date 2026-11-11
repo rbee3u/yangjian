@@ -58,6 +58,24 @@ func (c *Client) Close() {
 	}
 }
 
+// ChainID asks the provider which chain it serves. Callers compare it with the
+// requested chain before labelling any block or code with that chain ID.
+func (c *Client) ChainID(ctx context.Context) (int64, error) {
+	var id *big.Int
+	err := c.do(ctx, func(callCtx context.Context) error {
+		var err error
+		id, err = c.eth.ChainID(callCtx)
+		return err
+	})
+	if err != nil {
+		return 0, err
+	}
+	if id == nil {
+		return 0, fmt.Errorf("rpc returned an empty chain id")
+	}
+	return id.Int64(), nil
+}
+
 func (c *Client) CodeAt(ctx context.Context, address common.Address, blockNumber *big.Int) ([]byte, error) {
 	var code []byte
 	err := c.do(ctx, func(callCtx context.Context) error {

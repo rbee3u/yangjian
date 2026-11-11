@@ -4,6 +4,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -16,10 +19,11 @@ func TestCachedTransport(t *testing.T) {
 	}))
 	defer server.Close()
 	dir := t.TempDir()
+	requestURL := server.URL + "?apikey=super-secret"
 
 	client := &http.Client{Transport: &cachedTransport{base: http.DefaultTransport, dir: dir}}
 	for i := 0; i < 2; i++ {
-		response, err := client.Get(server.URL)
+		response, err := client.Get(requestURL)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -38,9 +42,20 @@ func TestCachedTransport(t *testing.T) {
 	if requests != 1 {
 		t.Fatalf("requests = %d", requests)
 	}
+	files, err := filepath.Glob(filepath.Join(dir, "*.json"))
+	if err != nil || len(files) != 1 {
+		t.Fatalf("cache files = %v, err = %v", files, err)
+	}
+	data, err := os.ReadFile(files[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "super-secret") {
+		t.Fatal("cache entry contains the API key")
+	}
 
 	refreshed := &http.Client{Transport: &cachedTransport{base: http.DefaultTransport, dir: dir, refresh: true}}
-	response, err := refreshed.Get(server.URL)
+	response, err := refreshed.Get(requestURL)
 	if err != nil {
 		t.Fatal(err)
 	}
