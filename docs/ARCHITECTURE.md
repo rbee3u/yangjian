@@ -109,7 +109,7 @@ produces a capability error rather than a simulated call graph.
 
 ## 5. Providers, concurrency, and cache
 
-Each provider has a profile (endpoint, auth reference, capabilities, rate limit, timeout, retry). Pinned-block responses are cached; `latest` header, code, storage, and call reads always hit the provider and are not long-term evidence. Stages run sequentially within a dossier; contract selection and recorded observation counts are bounded by the configured budgets, and every network call has a provider timeout and retry policy.
+Each provider has a profile (endpoint, auth reference, rate limit, timeout, retry); trace capability is probed at runtime rather than assumed from the profile. Pinned-block responses are cached; `latest` header, code, storage, and call reads always hit the provider and are not long-term evidence. Stages run sequentially within a dossier; contract selection and recorded observation counts are bounded by the configured budgets, and every network call has a provider timeout and retry policy.
 
 ## 6. Security
 

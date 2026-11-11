@@ -19,7 +19,7 @@ Steps:
 3. Sourcify client, source-provider response cache, and Etherscan cross-check (implemented; live Etherscan gated by an API key); source artifacts and match modes (implemented).
 4. Pinned solc manager and P2 rebuild (implemented); AST inheritance/C3 linearization, storage layout, immutables, method identifiers, and call sites parsed from the recorded solc output (implemented). Resource limits currently cover timeout, input size, output size, and a static-output read cap; OS memory/CPU rlimits remain an open question.
 5. Proxy detection (EIP-1967/1822/1167) with beacon `implementation()` resolution and ContractVersion update (implemented).
-6. Provenance pipeline: P1 embedded-metadata hash and source/settings binding; P2 when `bytecodeHash: none`; P0 fallback with explicit unproven marker. P1 and P2 implemented.
+6. Provenance pipeline: P1 embedded-metadata hash and source/settings binding when `bytecodeHash` is not `none`; P2 rebuild in all cases; P0 fallback with explicit unproven marker. P1 and P2 implemented.
 7. Pinned-block reads: `slot0()`, `liquidity()`, `ticks(currentTick)` (implemented); pool immutables and `onchain_reference` relations (implemented).
 8. Relations: `onchain_reference` (token0, token1, factory) and `source_dependency` (imports, inheritance) implemented.
 9. Report, Mermaid diagrams, relations.json, manifest, evidence index (implemented).
@@ -45,7 +45,7 @@ Steps:
 
 1. Target registry entry with official Uniswap deployment URL and retrieval date (implemented).
 2. Discover USDC/WETH 0.3% pool via `getPool`; bounded factory events optional (implemented without the optional event scan).
-3. Contract dossiers for Factory, Pool, and NonfungiblePositionManager; Router if source is available (implemented; Router is selected from the registry).
+3. Contract dossiers for Factory, Pool, and NonfungiblePositionManager, plus Router when the registry configures it (implemented; a missing Router source is recorded as an open question).
 4. Relations: Factory→Pool, Pool→tokens/factory, NPM→Factory, Router→Factory/WETH9 via pinned-block on-chain reads; source dependencies stay in contract dossiers and are aggregated; no `observed_call` (implemented).
 5. Topology and architecture diagrams; protocol report; manifest; open questions (implemented).
 6. Respect budgets: default 50 contracts and 1000 observations per dossier run; selection is a fixed four-role topology with no recursive crawl, so `budgets.max_depth` is reserved (implemented).

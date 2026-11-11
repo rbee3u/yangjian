@@ -91,7 +91,7 @@ yangjian trace transaction --chain 1 --tx 0x... --json
 
 1. Read the transaction and receipt by hash; pin the receipt block number and hash.
 2. Try `debug_traceTransaction` with `callTracer`; if the method is unsupported, try `trace_transaction`. Unsupported providers are reported, not emulated.
-3. Preserve the raw trace, then normalize calls with path, type, selector, input/output hashes, gas, value, and errors. The normalized frame count is capped at 10,000; the raw response is capped at 32 MiB.
+3. Preserve the raw trace, then normalize calls with path, type, selector, input/output hashes, gas, value, and errors. The normalized frame count is capped at 10,000; the raw response is capped at 32 MiB; endpoint code checks are capped at 256 unique addresses.
 4. Classify every unique call endpoint with `eth_getCode` at the receipt block. `observed_call` relations use `ContractID` for code-bearing addresses and `AccountID` for EOAs and precompiles, so a traced call is never confused with a static dependency. A failed or budget-skipped check is recorded as kind `unknown` with `checked: false`, not as a proven account.
 5. Write `transaction.json`, `report.md`, `sequence.mmd`, `relations.json`, `evidence.json`, and a manifest. Reverts stay as evidence (`status: 0`, call errors), not as fabricated failure results.
 

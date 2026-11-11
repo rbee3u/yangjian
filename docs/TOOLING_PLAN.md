@@ -5,8 +5,8 @@ Status: Draft for approval · 2026-11-10
 ## Runtime and core libraries
 
 - Go 1.27.3 (darwin/arm64); go-ethereum v1.17.10 requires Go 1.25+.
-- go-ethereum: `ethclient`, `gethclient`, `rpc`, `accounts/abi`, `core/types`, `crypto`.
-- Cobra for the CLI; `fxamacker/cbor/v2` for solc metadata CBOR; `golang.org/x/sync/errgroup`; `golang.org/x/time/rate`.
+- go-ethereum: `ethclient`, `rpc`, `accounts/abi`, `core/types`, `crypto`.
+- Cobra for the CLI; `golang.org/x/crypto/sha3` for keccak256; `golang.org/x/time/rate` for provider rate limiting.
 - Standard library: `encoding/json`, `log/slog`, `testing`.
 
 ## Capability matrix

@@ -335,7 +335,8 @@ func RunTransaction(ctx context.Context, params Params) (Result, error) {
 		return Result{}, fmt.Errorf("write report observation: %w", err)
 	}
 	addObservation(reportObservation.ID)
-	result.ObservationIDs = observationIDs
+	// transaction.json was serialized before report generation; the manifest is
+	// the authoritative observation index and includes the report observation.
 
 	manifest := model.Manifest{
 		SchemaVersion:  model.SchemaVersion,
