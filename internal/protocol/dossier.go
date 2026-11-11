@@ -154,6 +154,10 @@ func RunDossier(ctx context.Context, params Params) (Result, error) {
 	}
 	blockNumber := header.Number.Uint64()
 	blockRef := model.BlockRef{ChainID: params.ChainID, Number: blockNumber, Hash: header.Hash().Hex()}
+	blockTag := "latest"
+	if params.Block != nil {
+		blockTag = fmt.Sprintf("0x%x", blockNumber)
+	}
 	now := time.Now().UTC()
 	openQuestions := make([]string, 0)
 	observationIDs := make([]string, 0)
@@ -164,7 +168,7 @@ func RunDossier(ctx context.Context, params Params) (Result, error) {
 		RunID:         params.RunID,
 		Request: map[string]any{
 			"method": "eth_getBlockByNumber",
-			"params": []any{fmt.Sprintf("0x%x", blockNumber), false},
+			"params": []any{blockTag, false},
 		},
 		ResponseHash: "keccak256:" + hex.EncodeToString(crypto.Keccak256(header.Hash().Bytes())),
 		Block:        &blockRef,
