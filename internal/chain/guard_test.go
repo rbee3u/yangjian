@@ -36,4 +36,10 @@ func TestIsRetryable(t *testing.T) {
 	if isRetryable(&rpc.HTTPError{StatusCode: 400}) {
 		t.Fatal("400 should not be retryable")
 	}
+	if !isRetryable(rpc.HTTPError{StatusCode: 429}) {
+		t.Fatal("HTTPError value 429 should be retryable")
+	}
+	if isRetryable(rpc.HTTPError{StatusCode: 404}) {
+		t.Fatal("HTTPError value 404 should not be retryable")
+	}
 }

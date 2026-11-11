@@ -98,6 +98,18 @@ func (c *Client) StorageAt(ctx context.Context, address common.Address, slot com
 	return value, err
 }
 
+// RawCall executes a read-only JSON-RPC method and decodes the result through
+// the standard encoding/json rules. Methods outside the read-only allowlist are
+// rejected before any network call.
+func (c *Client) RawCall(ctx context.Context, result any, method string, args ...any) error {
+	if err := CheckReadOnly(method); err != nil {
+		return err
+	}
+	return c.do(ctx, func(callCtx context.Context) error {
+		return c.eth.Client().CallContext(callCtx, result, method, args...)
+	})
+}
+
 func (c *Client) do(ctx context.Context, fn func(context.Context) error) error {
 	var lastErr error
 	for attempt := 0; attempt <= c.maxRetries; attempt++ {
@@ -131,9 +143,13 @@ func isRetryable(err error) bool {
 	if errors.Is(err, context.Canceled) {
 		return false
 	}
-	var httpErr *rpc.HTTPError
-	if errors.As(err, &httpErr) {
-		return httpErr.StatusCode == 429 || httpErr.StatusCode >= 500
+	var httpValue rpc.HTTPError
+	if errors.As(err, &httpValue) {
+		return httpValue.StatusCode == 429 || httpValue.StatusCode >= 500
+	}
+	var httpPointer *rpc.HTTPError
+	if errors.As(err, &httpPointer) && httpPointer != nil {
+		return httpPointer.StatusCode == 429 || httpPointer.StatusCode >= 500
 	}
 	return false
 }

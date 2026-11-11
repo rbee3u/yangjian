@@ -13,6 +13,7 @@ const (
 	CodeCompilerUnavailable  Code = "compiler_unavailable"
 	CodeCompilerError        Code = "compiler_error"
 	CodeProxyUnresolved      Code = "proxy_unresolved"
+	CodeTraceInvalid         Code = "trace_invalid"
 	CodeSchemaInvalid        Code = "schema_invalid"
 	CodeBudgetExceeded       Code = "budget_exceeded"
 	CodeConfigInvalid        Code = "config_invalid"
@@ -46,6 +47,7 @@ var codeInfos = map[Code]codeInfo{
 	CodeCompilerUnavailable:  {Category: "tooling", Retryable: true},
 	CodeCompilerError:        {Category: "tooling", Retryable: false},
 	CodeProxyUnresolved:      {Category: "analysis", Retryable: false},
+	CodeTraceInvalid:         {Category: "provider", Retryable: false},
 	CodeSchemaInvalid:        {Category: "internal", Retryable: false},
 	CodeBudgetExceeded:       {Category: "policy", Retryable: false},
 	CodeConfigInvalid:        {Category: "usage", Retryable: false},

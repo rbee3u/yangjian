@@ -34,7 +34,7 @@ Primary user: a protocol researcher working locally in Claude Code on Ethereum m
 
 MVP: Ethereum mainnet; M1 Contract Dossier; M2 Protocol Dossier without trace. Multi-chain is parameterized internally; L2 support comes later. History means point-in-time reads, not an indexer.
 
-Out of scope: vulnerability detection/audit, transaction broadcasting, historical indexing, trace-dependent sequence diagrams (deferred), MCP (deferred), graph/vector databases, CI (local Makefile only for now).
+Out of scope: vulnerability detection/audit, transaction broadcasting, historical indexing, MCP (deferred), graph/vector databases, CI (local Makefile only for now). Trace-dependent sequence diagrams are implemented behind a provider capability probe; a public RPC without `debug_traceTransaction` or `trace_transaction` cannot produce them.
 
 ## 6. Success criteria
 

@@ -126,6 +126,14 @@ _Avoid_: Pool lookup, address search
 The evidence-backed research artifact for a Protocol's Deployment, covering topology, contract dossiers, and open questions.
 _Avoid_: Protocol report, protocol profile
 
+**Transaction Dossier**:
+The evidence-backed research artifact for one transaction trace, covering raw and normalized call frames, observed_call relations, and a sequence diagram.
+_Avoid_: Trace file, transaction report
+
+**Observed Call**:
+A Relation asserting that a call frame appeared in a transaction trace. The endpoints are Contracts when code was observed at the receipt block and Accounts otherwise.
+_Avoid_: Static call, inferred call, call graph edge
+
 ## Research Operations
 
 **Target Registry**:

@@ -631,12 +631,24 @@ func mapChainError(err error) envelope.Code {
 	if errors.Is(err, context.DeadlineExceeded) {
 		return envelope.CodeRPCTimeout
 	}
-	var httpErr *rpc.HTTPError
-	if errors.As(err, &httpErr) {
-		if httpErr.StatusCode == 429 {
-			return envelope.CodeRPCRateLimited
-		}
-		return envelope.CodeRPCUnavailable
+	var httpValue rpc.HTTPError
+	if errors.As(err, &httpValue) {
+		return classifyHTTPError(httpValue)
+	}
+	var httpPointer *rpc.HTTPError
+	if errors.As(err, &httpPointer) && httpPointer != nil {
+		return classifyHTTPError(*httpPointer)
+	}
+	return envelope.CodeRPCUnavailable
+}
+
+func classifyHTTPError(httpErr rpc.HTTPError) envelope.Code {
+	if httpErr.StatusCode == 429 {
+		return envelope.CodeRPCRateLimited
+	}
+	body := strings.ToLower(string(httpErr.Body))
+	if httpErr.StatusCode == 403 && (strings.Contains(body, "archive") || strings.Contains(body, "personal token")) {
+		return envelope.CodeBlockUnavailable
 	}
 	return envelope.CodeRPCUnavailable
 }

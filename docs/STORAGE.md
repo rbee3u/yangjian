@@ -10,6 +10,7 @@ research/
     contracts/<address>/
     discoveries/<factory>/<token0>-<token1>-<fee>/
     protocols/<slug>/
+    transactions/<txhash>/
 targets/
   mainnet.json
 .yangjian/
@@ -85,6 +86,27 @@ research/<chain-id>/protocols/<slug>/
 
 Protocol dossiers reference contract dossiers by `(chain ID, address)`; they do not copy contract artifacts. `relations.json` aggregates protocol-owned relations with the relations read from each referenced contract dossier; `evidence.json` indexes the protocol observations and contract summaries. Contract dossiers remain the owners of their own artifacts and evidence.
 
+## Transaction dossier
+
+```
+research/<chain-id>/transactions/<txhash>/
+  manifest.json
+  observations/<hash>.json
+  entities/relations/<hash>.json
+  artifacts/
+    transaction-raw.json
+    receipt-raw.json
+    trace-calltracer.json    (or trace-parity.json)
+    trace-calls.json
+  transaction.json
+  report.md
+  sequence.mmd
+  relations.json
+  evidence.json
+```
+
+The raw provider trace is preserved verbatim; normalized calls are derived. `observed_call` relations live only in this dossier. Endpoint code checks are recorded as `eth_getCode` observations, so `ContractID` versus `AccountID` is auditable.
+
 ## File roles
 
 - `manifest.json` — dossier index; source of truth for status and artifact references.
@@ -93,6 +115,7 @@ Protocol dossiers reference contract dossiers by `(chain ID, address)`; they do 
 - `artifacts/` — source, ABI, metadata, state, proxy, and provenance evidence files.
 - `report.md` — human narrative with evidence references.
 - `topology.mmd` / `architecture.mmd` — Mermaid sources; rendered images optional.
+- `sequence.mmd` — transaction call sequence; call order, not wall-clock timing.
 - `relations.json` — convenience export for agent queries; derived from entities.
 - `evidence.json` — structured observation/artifact index.
 

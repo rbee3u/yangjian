@@ -6,7 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/rbee3u/yangjian/internal/config"
+	"github.com/rbee3u/yangjian/internal/envelope"
 )
 
 const (
@@ -100,5 +102,15 @@ func TestResolveDiscoveryRejectsInvalidInput(t *testing.T) {
 				t.Fatal("expected error")
 			}
 		})
+	}
+}
+
+func TestMapChainErrorArchive403(t *testing.T) {
+	err := rpc.HTTPError{StatusCode: 403, Status: "403 Forbidden", Body: []byte(`{"error":{"message":"Archive requests require a personal token"}}`)}
+	if code := mapChainError(err); code != envelope.CodeBlockUnavailable {
+		t.Fatalf("code = %s", code)
+	}
+	if code := mapChainError(&err); code != envelope.CodeBlockUnavailable {
+		t.Fatalf("pointer code = %s", code)
 	}
 }

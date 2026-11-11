@@ -127,6 +127,30 @@ Example:
 yangjian protocol dossier --chain 1 --target uniswap-v3 --block latest --json
 ```
 
+## M4 commands
+
+### `yangjian trace transaction`
+
+Reads one transaction trace from the configured RPC and writes a transaction dossier.
+
+| Flag | Description |
+|---|---|
+| `--chain <id>` | Chain ID; default from config |
+| `--tx <0x...>` | 32-byte transaction hash; required |
+| `--out <dir>` | Dossier directory; default `research/<chain>/transactions/<txhash>` |
+| `--refresh` | Ignore cached `eth_getCode` reads used to classify call endpoints |
+| `--json` / `--text` | Output mode; JSON is the default |
+
+The command first records `eth_getTransactionByHash` and `eth_getTransactionReceipt`, then tries `debug_traceTransaction` with `{"tracer":"callTracer"}` and falls back to `trace_transaction` only when the first method is unsupported. It preserves the raw provider response and writes normalized call frames with path, depth, call type, selector, input/output hashes, gas, value, and error fields. Every call frame with both endpoints becomes an `observed_call` relation whose `from`/`to` use `ContractID` when `eth_getCode` returns code at the receipt block and `AccountID` otherwise. The command writes `transaction.json`, `report.md`, `sequence.mmd`, `relations.json`, `evidence.json`, and a manifest.
+
+An execution revert is evidence (`status: 0` and call errors), not an operational failure. A provider without either trace method returns `rpc_method_unsupported`; an unreadable trace returns `trace_invalid`. Trace responses are capped at 32 MiB and 10,000 normalized call frames, with truncation recorded as an open question. No trace call is cached in the RPC response cache; the raw response is kept in the dossier.
+
+Example:
+
+```sh
+yangjian trace transaction --chain 1 --tx 0x... --json
+```
+
 ## Envelope
 
 Success:
@@ -193,6 +217,7 @@ Failure:
 | `compiler_unavailable` | tooling | yes |
 | `compiler_error` | tooling | no |
 | `proxy_unresolved` | analysis | no |
+| `trace_invalid` | provider | no |
 | `schema_invalid` | internal | no |
 | `budget_exceeded` | policy | no |
 | `config_invalid` | usage | no |
@@ -211,5 +236,4 @@ The chain adapter permits only read methods (`eth_chainId`, `eth_blockNumber`, `
 
 ## Future commands
 
-- `yangjian trace ...` (after a trace provider).
 - `yangjian query ...` (optional, after a SQLite index).

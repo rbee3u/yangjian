@@ -139,9 +139,10 @@ type Artifact struct {
 }
 
 type TargetRef struct {
-	ChainID      int64  `json:"chain_id"`
-	Address      string `json:"address,omitempty"`
-	ProtocolSlug string `json:"protocol_slug,omitempty"`
+	ChainID         int64  `json:"chain_id"`
+	Address         string `json:"address,omitempty"`
+	ProtocolSlug    string `json:"protocol_slug,omitempty"`
+	TransactionHash string `json:"transaction_hash,omitempty"`
 }
 
 type Protocol struct {

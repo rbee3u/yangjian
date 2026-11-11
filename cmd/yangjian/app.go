@@ -47,6 +47,7 @@ func (a *app) command() *cobra.Command {
 	root.AddCommand(a.configCommand())
 	root.AddCommand(a.contractCommand())
 	root.AddCommand(a.protocolCommand())
+	root.AddCommand(a.traceCommand())
 	return root
 }
 

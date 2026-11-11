@@ -33,6 +33,7 @@ Claude Code composes research; Yangjian never calls an LLM. All external access 
 | `internal/store` | File-first store, content addressing, observation deduplication |
 | `internal/dossier` | M1 staged pipeline: code, source, provenance, analyze, state, report |
 | `internal/protocol` | M2 protocol dossier orchestration, topology discovery, budgets, relations |
+| `internal/trace` | M4 trace adapter, normalization, observed_call relations, transaction report |
 | `internal/version` | Version, commit, build date |
 
 ## 3. Data flow
@@ -79,13 +80,27 @@ dossiers and are aggregated in `relations.json` without copying artifacts. The
 M2 run does not issue logs or trace calls, so no `observed_call` relation is
 possible.
 
+M4 Transaction Trace:
+
+```
+transaction hash
+  → transaction + receipt by hash
+  → debug_traceTransaction(callTracer) or trace_transaction
+  → normalized call frames + endpoint code checks
+  → observed_call relations + sequence diagram + transaction report
+```
+
+A trace endpoint is a `ContractID` only when `eth_getCode` returns code at the
+receipt block; otherwise it is an `AccountID`. A provider without trace methods
+produces a capability error rather than a simulated call graph.
+
 ## 4. Adapter boundaries
 
 - `ChainClient`: block, code, storage, call, logs, trace placeholder.
 - `SourceProvider`: Sourcify primary, Etherscan secondary.
 - `Compiler`: pinned solc binary and standard JSON.
 - `Analyzer`: solc AST facts and proxy probes.
-- `TraceProvider`: placeholder; no MVP implementation.
+- `TraceProvider`: `debug_traceTransaction` callTracer first, `trace_transaction` second; capability failures are explicit.
 - `Store`: observations, entities, manifests, cache.
 - `Reporter`: Markdown and Mermaid.
 

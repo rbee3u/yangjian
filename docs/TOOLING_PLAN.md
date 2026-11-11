@@ -21,7 +21,7 @@ Status: Draft for approval · 2026-11-10
 | Call graph / access control | Slither/Surya DOT; custom AST | heuristic or deferred | no stable JSON |
 | Proxy detection | Go implementation; Sourcify `proxyResolution`; Etherscan labels | Go EIP-1967/1822/1167 + events; Sourcify cross-check | no established Go library; explorer labels can be false positives |
 | Historical state | archive RPC; free key; local node | deferred; free key later | free tiers include archive state but not debug/trace |
-| Traces | `debug_traceTransaction`; `trace_transaction`; Tenderly | deferred; adapter later | `debug_*` + callTracer most supported; `trace_*` is Erigon/Parity |
+| Traces | `debug_traceTransaction`; `trace_transaction`; Tenderly | `internal/trace` adapter with callTracer first and parity trace second | `debug_*` + callTracer most supported; `trace_*` is Erigon/Parity |
 | Local simulation | anvil fork; geth dev; reth | optional later | anvil fork needs an archive upstream for old blocks; not a substitute for a real trace |
 | Knowledge storage | JSON files; SQLite; graph/vector | file-first JSON + Markdown; SQLite later as index | reproducibility and diffability |
 | Config | JSON; YAML/TOML; env only | JSON + env var references | zero extra parser dependency; schema-validatable |
@@ -34,7 +34,7 @@ Status: Draft for approval · 2026-11-10
 - **Sourcify v2**: primary provenance source; no key; cache and back off; record `match` versus `exact_match`.
 - **Etherscan v2**: secondary cross-check; free key if configured; 3 req/s, 100k/day.
 - **RPC**: provider profiles; public endpoints for current-state reads; free archive key later for historical state.
-- **Traces**: no MVP provider; when added, prefer `debug_traceTransaction` with callTracer and fall back to `trace_transaction` behind a capability probe.
+- **Traces**: `debug_traceTransaction` with callTracer, falling back to `trace_transaction` behind a capability probe. The raw provider response is preserved; unsupported methods are reported, never simulated.
 - **solc-bin**: download the exact build, verify its hash, cache it.
 
 ## Explicit non-dependencies

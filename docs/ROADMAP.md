@@ -56,9 +56,9 @@ Definition of done: the Uniswap V3 deployment topology is reproducible from evid
 
 Enable `--block` historical reads when a free archive key or archive endpoint is configured. Acceptance items requiring old state move from deferred to active.
 
-## M4 — Trace and observed_call (deferred)
+## M4 — Trace and observed_call (implemented; live provider not verified)
 
-Add a `TraceProvider` adapter (`debug_traceTransaction` + callTracer first, `trace_transaction` second). Enable `observed_call` relations, transaction reports, and sequence diagrams.
+`internal/trace` implements a `TraceProvider` adapter: `debug_traceTransaction` with `callTracer` first, `trace_transaction` second. The `trace transaction` command records the transaction, receipt, raw trace, normalized call frames, code classifications, `observed_call` relations, a transaction report, and a sequence diagram. Provider capability failures return `rpc_method_unsupported`; an invalid trace returns `trace_invalid`; no relation is written without a successful trace. Live verification is skipped because the configured public RPC does not expose trace methods; the adapter and normalization are covered by offline tests.
 
 ## M5 — Multi-chain (deferred)
 

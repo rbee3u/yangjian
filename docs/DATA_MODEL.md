@@ -30,6 +30,7 @@ erDiagram
 |---|---|
 | Contract | `chainId:address` (e.g. `1:0x8ad5...`) |
 | ContractVersion | `chainId:address@validFromBlock` |
+| Account | `account:<chainId>:<address>` (trace endpoint without runtime code) |
 | SourceRevision | `sha256:<hash>` over sources + compilation settings |
 | Observation | `sha256:<hash>` over canonical request/response |
 | Relation | `type:from:to:evidenceHash` |
@@ -118,8 +119,10 @@ Type-specific requirements:
 
 - `source_dependency`: source path and symbol. Import relations point from `source:<revision>#<path>` to a content-addressed source file; inheritance relations point from a derived source coordinate to its base contract coordinate. Attributes record `relation`, `source_path`, `symbol`, and `source_revision_id`.
 - `onchain_reference`: method or event, block number/hash. M1 pool relations record `method`, `selector`, `address`, `block_hash`, and `observation_id`. Protocol dossiers additionally record `role`/`source_role` and, for NPM/Router factory reads, whether the returned address matches the registry factory. Protocol `relations.json` aggregates protocol-owned relations with relations read from referenced contract dossiers; contract dossiers remain the owners.
-- `observed_call`: transaction hash, trace reference, call path.
+- `observed_call`: transaction hash, trace reference, call path. M4 also records call type, selector, and whether each endpoint was a contract or an account at the receipt block. `from`/`to` use `ContractID` when `eth_getCode` returned code and `AccountID` otherwise.
 - `inferred_relation`: heuristic name and rule version; never rendered as a fact.
+
+`observed_call` is the only relation type allowed to represent execution. A source call site or an address read never becomes an `observed_call` without a trace observation.
 
 ## M1 artifact kinds
 
@@ -133,6 +136,8 @@ Type-specific requirements:
 | `static_analysis` | Derived source structure: inheritance, storage layout, immutables, methods, call sites |
 | `discovery` | Factory lookup inputs, pinned block, `getPool` result, and discovered runtime code |
 | `state` | Pinned-block pool state and immutables |
+| `transaction`, `transaction_raw`, `receipt` | M4 transaction summary and raw provider evidence |
+| `trace_raw`, `trace`, `sequence` | Raw trace, normalized call frames, and Mermaid sequence |
 | `protocol`, `deployment` | M2 derived entities |
 | `protocol_result` | Protocol dossier summary (`protocol.json`) |
 | `report`, `topology`, `architecture`, `relations`, `evidence` | Human and machine report outputs |
@@ -184,8 +189,8 @@ A discovery dossier is not a Contract Dossier. Its target is the factory address
 | Field | Type | Notes |
 |---|---|---|
 | `schema_version` | string | |
-| `dossier_type` | enum | `contract`, `protocol`, `discovery` |
-| `target` | object | chain ID plus address or protocol slug |
+| `dossier_type` | enum | `contract`, `protocol`, `discovery`, `transaction` |
+| `target` | object | chain ID plus address, protocol slug, or transaction hash |
 | `tool_version` | string | |
 | `run_id` | string | |
 | `status` | enum | `complete`, `partial`, `failed` |
@@ -245,6 +250,8 @@ Contracts with `metadata.bytecodeHash = none` skip P1 and go directly to P2. If 
 - `SourceRevision.registry_match` and `provenance_level` are required.
 - `ContractVersion` has a runtime bytecode hash or an explicit error observation.
 - Relation type-specific attributes are required as listed above.
+- An `observed_call` relation must reference a successful trace observation and a transaction hash; it must not be derived from source or an address read.
+- A trace endpoint uses `ContractID` only when code was observed at the receipt block; otherwise it uses `AccountID`.
 - Secrets never appear in observations, manifests, or reports.
 - Unknown JSON fields are preserved on read.
 

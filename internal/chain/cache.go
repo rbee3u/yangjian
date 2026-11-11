@@ -47,6 +47,20 @@ func (c *CachedClient) Close() {
 	}
 }
 
+type rawCaller interface {
+	RawCall(ctx context.Context, result any, method string, args ...any) error
+}
+
+// RawCall passes through uncached read-only methods. Trace responses are kept
+// as dossier artifacts rather than in the RPC response cache.
+func (c *CachedClient) RawCall(ctx context.Context, result any, method string, args ...any) error {
+	caller, ok := c.inner.(rawCaller)
+	if !ok {
+		return fmt.Errorf("underlying client does not support raw calls")
+	}
+	return caller.RawCall(ctx, result, method, args...)
+}
+
 func (c *CachedClient) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 	if number == nil {
 		header, err := c.inner.HeaderByNumber(ctx, nil)

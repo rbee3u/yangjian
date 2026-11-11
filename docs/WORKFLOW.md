@@ -83,6 +83,20 @@ yangjian protocol dossier --chain 1 --target uniswap-v3 --block latest --json
 
 A contract dossier failure is recorded in `open_questions` and the remaining contracts still run. A returned address that disagrees with the registry is recorded as an open question; it is not silently trusted. No `observed_call` relation and no sequence diagram is emitted until trace access exists.
 
+## M4 — Transaction Trace
+
+```sh
+yangjian trace transaction --chain 1 --tx 0x... --json
+```
+
+1. Read the transaction and receipt by hash; pin the receipt block number and hash.
+2. Try `debug_traceTransaction` with `callTracer`; if the method is unsupported, try `trace_transaction`. Unsupported providers are reported, not emulated.
+3. Preserve the raw trace, then normalize calls with path, type, selector, input/output hashes, gas, value, and errors. The normalized frame count is capped at 10,000; the raw response is capped at 32 MiB.
+4. Classify every unique call endpoint with `eth_getCode` at the receipt block. `observed_call` relations use `ContractID` for code-bearing addresses and `AccountID` for EOAs and precompiles, so a traced call is never confused with a static dependency.
+5. Write `transaction.json`, `report.md`, `sequence.mmd`, `relations.json`, `evidence.json`, and a manifest. Reverts stay as evidence (`status: 0`, call errors), not as fabricated failure results.
+
+Trace-dependent sequence diagrams require a provider with `debug_*` or `trace_*`; a public endpoint that exposes neither returns `rpc_method_unsupported`.
+
 ## Agent rules
 
 - Invoke the CLI with `--json`; read the envelope and `meta.block`.
@@ -97,5 +111,5 @@ A contract dossier failure is recorded in `open_questions` and the remaining con
 ## Deferred workflows
 
 - Historical state: enable `--block <n>` when a free archive key is configured.
-- Trace: add `TraceProvider`, `observed_call`, transaction reports, sequence diagrams.
+- Live trace acceptance: run the M4 command against a trace-capable provider; the configured public endpoint does not expose trace methods.
 - L2: add Base after mainnet acceptance.

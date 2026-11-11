@@ -41,6 +41,7 @@ Cover at least:
 - Proxy unresolved, beacon call failure.
 - Budget exceeded, context cancellation.
 - Invalid config, missing target registry entry.
+- Trace: method unsupported, invalid trace JSON, oversized trace, code check failure, transaction or receipt missing.
 
 ## Acceptance
 
@@ -52,6 +53,10 @@ M1 fixture: Uniswap V3 USDC/WETH 0.3% Pool.
 - Assert `onchain_reference` relations to token0/token1/factory and `source_dependency` relations.
 - Assert report, diagrams, `relations.json`, `manifest.json`, and evidence index.
 - Assert no `observed_call` relation.
+
+M2 protocol acceptance: run `yangjian protocol dossier` against the Uniswap V3 target and assert pool discovery from `getPool`, four contract dossiers, protocol `getPool`/`factory`/`WETH9` relations, aggregated pool relations, topology, and no `observed_call`.
+
+M4 trace tests: fake RPC coverage for callTracer, fallback to `trace_transaction`, unsupported providers, missing receipts, truncated traces, invalid addresses, receipt status, endpoint classification, relation IDs, and artifact hashes. A live trace test requires a provider with `debug_*` or `trace_*` and is skipped on public endpoints without those methods.
 
 Live acceptance: `YANGJIAN_LIVE=1 go test ./... -run Acceptance`; latest block; structural invariants; no historical-block claim.
 
