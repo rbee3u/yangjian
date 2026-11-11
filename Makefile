@@ -7,7 +7,7 @@ LDFLAGS := -X github.com/rbee3u/yangjian/internal/version.Version=$(VERSION) \
 	-X github.com/rbee3u/yangjian/internal/version.Commit=$(COMMIT) \
 	-X github.com/rbee3u/yangjian/internal/version.Date=$(DATE)
 
-.PHONY: build install test test-live vet verify clean
+.PHONY: build install test test-live fixtures vet verify clean
 
 build:
 	$(GO) build -trimpath -buildvcs -ldflags "$(LDFLAGS)" -o bin/$(BIN) ./cmd/yangjian
@@ -20,6 +20,9 @@ test:
 
 test-live:
 	YANGJIAN_LIVE=1 $(GO) test ./...
+
+fixtures:
+	$(GO) run -trimpath ./cmd/yangjian fixtures record --chain 1 --target uniswap-v3 --out testdata/fixtures/sourcify/uniswap-v3-pool.json
 
 vet:
 	$(GO) vet ./...

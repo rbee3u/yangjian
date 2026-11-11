@@ -18,18 +18,22 @@ Status: Draft for approval · 2026-11-10
 
 ## Fixtures
 
-- Location: `testdata/fixtures/<provider>/<case>/`.
-- Record with `make fixtures` (recording command added in M1).
-- Store raw responses, normalized request metadata, block number/hash, provider, and retrieval date.
+- Location: `testdata/fixtures/<provider>/<case>.json`.
+- Record with `make fixtures`, which runs `yangjian fixtures record --chain 1 --target uniswap-v3`; the command discovers the pool from the factory at the pinned block, fetches its runtime code, and records the Sourcify response.
+- Each fixture includes chain ID, address, block number/hash, runtime bytecode, the provider record, and `recorded_at`.
 - Redact API keys and endpoint credentials.
 - Large responses may be compressed, but must remain reproducible.
 
+The current fixture is `testdata/fixtures/sourcify/uniswap-v3-pool.json`. `internal/fixtures/replay_test.go` replays it offline through the code and source stages, asserting zero source hash mismatches and exact ABI/source identities.
+
 ## Golden files
 
-- Location: `testdata/golden/<case>/`.
+- Location: `testdata/golden/<case>.json`.
 - Compare canonical JSON (stable key order, normalized timestamps).
-- Update with `go test ./... -update`; review diffs before committing.
+- Update with `go test ./internal/fixtures -update`; review diffs before committing.
 - Never hand-edit golden files to make tests pass.
+
+The current golden is `testdata/golden/sourcify/uniswap-v3-pool.json`, recording the block, runtime hash, compiler, registry match, source count, ABI hash, and source revision ID.
 
 ## Error paths
 

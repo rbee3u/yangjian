@@ -1,0 +1,19 @@
+{
+  "schema_version": "1",
+  "target": "uniswap-v3",
+  "pool": "0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8",
+  "block": {
+    "chain_id": 1,
+    "number": 26388269,
+    "hash": "0xb05f778ddf536a7a8b6cb11936818ae3ec3fcdf28832585a0d34dc7b7b5285c0"
+  },
+  "runtime_bytecode_hash": "keccak256:f2b8b58f95b1471751302e520a0e7c410ce9846ed46020be253dbd25fbb6da11",
+  "runtime_bytes": 22142,
+  "compiler": "0.7.6+commit.7338295f",
+  "registry_match": "match",
+  "source_count": 31,
+  "source_hash_mismatches": 0,
+  "missing_sources": 0,
+  "abi_hash": "sha256:fc8b13304fa6dd04e246d9e3226610a4d2cb7f8779b272863e40d09d9fee2866",
+  "source_revision_id": "sha256:806ed1b1347212a5f92e1d0a2b6f337fa632266f812aca489c4b7d9674899f55"
+}
