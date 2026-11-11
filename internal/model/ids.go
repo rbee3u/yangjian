@@ -24,9 +24,9 @@ func ContractVersionID(chainID int64, address string, validFromBlock uint64) str
 	return fmt.Sprintf("%d:%s@%d", chainID, strings.ToLower(common.HexToAddress(address).Hex()), validFromBlock)
 }
 
-// AccountID identifies a trace endpoint that has no runtime code at the
-// observed block. It keeps observed_call relations from labeling an EOA or a
-// precompile as a Contract.
+// AccountID identifies a trace endpoint that was not observed to have runtime
+// code at the observed block. It keeps observed_call relations from labeling an
+// EOA, a precompile, or an unclassified endpoint as a Contract.
 func AccountID(chainID int64, address string) string {
 	return fmt.Sprintf("account:%d:%s", chainID, strings.ToLower(common.HexToAddress(address).Hex()))
 }

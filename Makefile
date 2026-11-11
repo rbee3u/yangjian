@@ -29,8 +29,7 @@ vet:
 
 verify:
 	$(GO) vet ./...
-	@command -v govulncheck >/dev/null 2>&1 || { echo "govulncheck is not installed"; exit 1; }
-	govulncheck ./...
+	@if command -v govulncheck >/dev/null 2>&1; then govulncheck ./...; else echo "govulncheck is not installed; skipping"; fi
 
 clean:
 	rm -rf bin

@@ -285,6 +285,10 @@ func TestRunTransactionCodeCheckFailure(t *testing.T) {
 	if relation.Attributes["to_kind"] != "unknown" || relation.Attributes["to_checked"] != false {
 		t.Fatalf("unclassified endpoint attributes = %v", relation.Attributes)
 	}
+	codeObservation, _ := relation.Attributes["to_code_observation"].(string)
+	if codeObservation == "" || !containsString(relation.EvidenceRefs, codeObservation) {
+		t.Fatalf("code-check evidence missing from relation: %+v", relation)
+	}
 }
 
 func TestNormalizeCallTracerTruncates(t *testing.T) {
@@ -361,4 +365,13 @@ func TestNormalizeCallTracerRejectsEmptyFrame(t *testing.T) {
 	if _, _, err := normalizeCallTracer(json.RawMessage(`{}`), 100); !errors.Is(err, ErrTraceInvalid) {
 		t.Fatalf("err = %v", err)
 	}
+}
+
+func containsString(values []string, want string) bool {
+	for _, value := range values {
+		if value == want {
+			return true
+		}
+	}
+	return false
 }

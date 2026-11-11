@@ -45,6 +45,7 @@ research/<chain-id>/contracts/<address>/
       solc-error.txt          (only when compilation failed)
     sources/<keccak256>.sol
     sourcify-response.json
+    source-crosscheck.json   (only when a secondary source was compared)
   report.md
   topology.mmd
   architecture.mmd

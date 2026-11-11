@@ -522,23 +522,24 @@ func classifyEndpoints(ctx context.Context, params Params, calls []Call, blockRe
 		observations = append(observations, obs.ID)
 		if err != nil {
 			warnings = appendUnique(warnings, fmt.Sprintf("code check failed for %s: %v", shortAddress(address), err))
-			endpoints[address] = endpoint{ID: model.AccountID(params.ChainID, address), Kind: "unknown", Checked: false}
+			endpoints[address] = endpoint{ID: model.AccountID(params.ChainID, address), Kind: "unknown", Checked: false, ObservationID: obs.ID}
 			continue
 		}
 		if len(code) > 0 {
-			endpoints[address] = endpoint{ID: model.ContractID(params.ChainID, address), Kind: "contract", Checked: true, CodeSize: len(code)}
+			endpoints[address] = endpoint{ID: model.ContractID(params.ChainID, address), Kind: "contract", Checked: true, CodeSize: len(code), ObservationID: obs.ID}
 		} else {
-			endpoints[address] = endpoint{ID: model.AccountID(params.ChainID, address), Kind: "account", Checked: true}
+			endpoints[address] = endpoint{ID: model.AccountID(params.ChainID, address), Kind: "account", Checked: true, ObservationID: obs.ID}
 		}
 	}
 	return endpoints, observations, warnings, nil
 }
 
 type endpoint struct {
-	ID       string
-	Kind     string
-	Checked  bool
-	CodeSize int
+	ID            string
+	Kind          string
+	Checked       bool
+	CodeSize      int
+	ObservationID string
 }
 
 func writeObservedCall(params Params, blockRef model.BlockRef, observationID, traceArtifact string, call Call, from, to endpoint) (model.Relation, error) {
@@ -566,6 +567,15 @@ func writeObservedCall(params Params, blockRef model.BlockRef, observationID, tr
 	if call.Error != "" {
 		attributes["error"] = call.Error
 	}
+	evidenceRefs := []string{observationID}
+	if from.ObservationID != "" {
+		attributes["from_code_observation"] = from.ObservationID
+		evidenceRefs = appendUnique(evidenceRefs, from.ObservationID)
+	}
+	if to.ObservationID != "" {
+		attributes["to_code_observation"] = to.ObservationID
+		evidenceRefs = appendUnique(evidenceRefs, to.ObservationID)
+	}
 	relation := model.Relation{
 		SchemaVersion: model.SchemaVersion,
 		ID:            id,
@@ -574,7 +584,7 @@ func writeObservedCall(params Params, blockRef model.BlockRef, observationID, tr
 		To:            to.ID,
 		BlockScope:    &model.BlockScope{FromBlock: blockRef.Number},
 		Attributes:    attributes,
-		EvidenceRefs:  []string{observationID},
+		EvidenceRefs:  evidenceRefs,
 	}
 	if _, err := params.Store.WriteJSON(relationPath(id), relation); err != nil {
 		return model.Relation{}, err
