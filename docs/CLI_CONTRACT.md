@@ -4,7 +4,7 @@ Status: Draft for approval · 2026-11-10
 
 ## Global behavior
 
-- All commands emit a JSON envelope on stdout; `--text` opts into human-readable output.
+- All research commands emit a JSON envelope on stdout; `--text` opts into human-readable output. Cobra's built-in `help` and `completion` commands are the exception.
 - Logs go to stderr as `log/slog` JSON; `--log-level` controls verbosity.
 - Exit codes: 0 success, 1 operational failure, 2 usage/config, 3 partial success.
 - Read-only: the CLI never accepts private keys, never signs, and never broadcasts.
@@ -19,7 +19,7 @@ Prints version, commit, build date, and Go version.
 
 ### `yangjian config init`
 
-Writes a documented example config with provider profiles and `api_key_env` references.
+Writes a documented example config with provider profiles and `api_key_env` references. `--force` overwrites an existing file.
 
 ### `yangjian contract dossier`
 
