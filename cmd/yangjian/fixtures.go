@@ -31,14 +31,15 @@ type fixtureOptions struct {
 }
 
 type sourceFixture struct {
-	SchemaVersion   string         `json:"schema_version"`
-	ChainID         int64          `json:"chain_id"`
-	Target          string         `json:"target"`
-	Address         string         `json:"address"`
-	Block           model.BlockRef `json:"block"`
-	RuntimeBytecode string         `json:"runtime_bytecode"`
-	Sourcify        source.Record  `json:"sourcify"`
-	RecordedAt      time.Time      `json:"recorded_at"`
+	SchemaVersion   string          `json:"schema_version"`
+	ChainID         int64           `json:"chain_id"`
+	Target          string          `json:"target"`
+	Address         string          `json:"address"`
+	Block           model.BlockRef  `json:"block"`
+	RuntimeBytecode string          `json:"runtime_bytecode"`
+	Sourcify        source.Record   `json:"sourcify"`
+	SourcifyRaw     json.RawMessage `json:"sourcify_raw,omitempty"`
+	RecordedAt      time.Time       `json:"recorded_at"`
 }
 
 var fixtureGetPoolABI = mustFixtureABI(`[
@@ -195,6 +196,7 @@ func (a *app) runFixtureRecord(opts *fixtureOptions) error {
 		Block:           blockRef,
 		RuntimeBytecode: "0x" + hex.EncodeToString(code),
 		Sourcify:        record,
+		SourcifyRaw:     append([]byte(nil), record.Raw...),
 		RecordedAt:      time.Now().UTC(),
 	}
 	dataJSON, err := json.MarshalIndent(fixture, "", "  ")

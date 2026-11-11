@@ -22,14 +22,15 @@ import (
 var updateGolden = flag.Bool("update", false, "update golden files")
 
 type sourceFixture struct {
-	SchemaVersion   string         `json:"schema_version"`
-	ChainID         int64          `json:"chain_id"`
-	Target          string         `json:"target"`
-	Address         string         `json:"address"`
-	Block           model.BlockRef `json:"block"`
-	RuntimeBytecode string         `json:"runtime_bytecode"`
-	Sourcify        source.Record  `json:"sourcify"`
-	RecordedAt      time.Time      `json:"recorded_at"`
+	SchemaVersion   string          `json:"schema_version"`
+	ChainID         int64           `json:"chain_id"`
+	Target          string          `json:"target"`
+	Address         string          `json:"address"`
+	Block           model.BlockRef  `json:"block"`
+	RuntimeBytecode string          `json:"runtime_bytecode"`
+	Sourcify        source.Record   `json:"sourcify"`
+	SourcifyRaw     json.RawMessage `json:"sourcify_raw,omitempty"`
+	RecordedAt      time.Time       `json:"recorded_at"`
 }
 
 type sourceGolden struct {
@@ -77,6 +78,10 @@ func loadFixture(t *testing.T) sourceFixture {
 	if fixture.Sourcify.Address == "" || fixture.Sourcify.ChainID == 0 {
 		t.Fatalf("fixture source record is invalid")
 	}
+	if len(fixture.SourcifyRaw) == 0 {
+		t.Fatalf("fixture does not preserve the raw provider response")
+	}
+	fixture.Sourcify.Raw = append([]byte(nil), fixture.SourcifyRaw...)
 	return fixture
 }
 

@@ -97,6 +97,14 @@ func (a *app) runProtocolDossier(opts *protocolOptions) error {
 		return a.fail("protocol dossier", envelope.CodeUsage,
 			fmt.Errorf("target chain %d does not match requested chain %d", targetEntry.ChainID, chainID), start, meta)
 	}
+	if _, err := targetEntry.Address("factory"); err != nil {
+		return a.fail("protocol dossier", envelope.CodeUsage, err, start, meta)
+	}
+	for _, symbol := range targetEntry.Acceptance.PoolPair {
+		if _, err := targetEntry.Token(symbol); err != nil {
+			return a.fail("protocol dossier", envelope.CodeUsage, err, start, meta)
+		}
+	}
 	outDir := opts.out
 	if outDir == "" {
 		outDir = filepath.Join("research", strconv.FormatInt(chainID, 10), "protocols", targetEntry.Slug)

@@ -20,7 +20,7 @@ Status: Draft for approval · 2026-11-10
 
 - Location: `testdata/fixtures/<provider>/<case>.json`.
 - Record with `make fixtures`, which runs `yangjian fixtures record --chain 1 --target uniswap-v3`; the command discovers the pool from the factory at the pinned block, fetches its runtime code, and records the Sourcify response.
-- Each fixture includes chain ID, address, block number/hash, runtime bytecode, the provider record, and `recorded_at`.
+- Each fixture includes chain ID, address, block number/hash, runtime bytecode, the parsed provider record, the exact raw provider response, and `recorded_at`.
 - Redact API keys and endpoint credentials.
 - Large responses may be compressed, but must remain reproducible.
 

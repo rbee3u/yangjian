@@ -213,7 +213,7 @@ func TestRunDossierBuildsTopologyAndEvidence(t *testing.T) {
 	result, err := RunDossier(context.Background(), Params{
 		ChainID:      1,
 		Target:       testTarget(factory, npm, router, usdc, weth),
-		Block:        big.NewInt(100),
+		Block:        nil,
 		Store:        protocolStore,
 		RunID:        "test-run",
 		Chain:        chain,
@@ -259,6 +259,15 @@ func TestRunDossierBuildsTopologyAndEvidence(t *testing.T) {
 	}
 	if len(manifest.ProtocolIDs) != 1 || len(manifest.DeploymentIDs) != 1 {
 		t.Fatalf("protocol/deployment refs = %v %v", manifest.ProtocolIDs, manifest.DeploymentIDs)
+	}
+	var headerObservation model.Observation
+	headerRel := filepath.Join("observations", strings.TrimPrefix(manifest.ObservationIDs[0], "sha256:")+".json")
+	if err := protocolStore.ReadJSON(headerRel, &headerObservation); err != nil {
+		t.Fatal(err)
+	}
+	headerParams, _ := headerObservation.Request["params"].([]any)
+	if len(headerParams) == 0 || headerParams[0] != "latest" {
+		t.Fatalf("header request = %v", headerObservation.Request)
 	}
 	if len(manifest.RelationIDs) < 4 {
 		t.Fatalf("protocol relation ids = %v", manifest.RelationIDs)
