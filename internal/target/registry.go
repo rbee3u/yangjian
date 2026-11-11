@@ -80,6 +80,11 @@ func (t *Target) Validate() error {
 	if t.Slug == "" {
 		return fmt.Errorf("slug must not be empty")
 	}
+	for _, r := range t.Slug {
+		if (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' {
+			return fmt.Errorf("slug %q must contain only lowercase letters, digits, and hyphens", t.Slug)
+		}
+	}
 	if t.Name == "" {
 		return fmt.Errorf("name must not be empty")
 	}

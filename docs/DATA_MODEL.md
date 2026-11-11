@@ -9,7 +9,7 @@ Status: Draft for approval · 2026-11-10
 - Every on-chain fact carries chain ID, block number, and block hash.
 - Contract identity is stable; behavior and source bindings are block-versioned.
 - Every derived entity carries `evidence_refs`.
-- Unknown fields are preserved on read; `schema_version` gates migrations.
+- Unknown fields are tolerated on read; derived entities are rewritten from the current schema, and `schema_version` gates migrations.
 
 ## Entity graph
 
@@ -33,7 +33,7 @@ erDiagram
 | Account | `account:<chainId>:<address>` (trace endpoint without runtime code) |
 | SourceRevision | `sha256:<hash>` over sources + compilation settings |
 | Observation | `sha256:<hash>` over canonical request/response |
-| Relation | `type:from:to:evidenceHash` |
+| Relation | `type:from:to:evidenceHash` (for `observed_call`, the evidence token is `<traceObservation>#<callPath>` so sibling calls cannot collide) |
 | Manifest | file path; no synthetic ID |
 
 No random UUIDs. Observations and artifacts are deduplicated by content hash.
@@ -124,7 +124,7 @@ Type-specific requirements:
 
 `observed_call` is the only relation type allowed to represent execution. A source call site or an address read never becomes an `observed_call` without a trace observation.
 
-## M1 artifact kinds
+## Artifact kinds
 
 | Kind | Contents |
 |---|---|
@@ -253,7 +253,7 @@ Contracts with `metadata.bytecodeHash = none` skip P1 and go directly to P2. If 
 - An `observed_call` relation must reference a successful trace observation and a transaction hash; it must not be derived from source or an address read.
 - A trace endpoint uses `ContractID` only when code was observed at the receipt block; otherwise it uses `AccountID`.
 - Secrets never appear in observations, manifests, or reports.
-- Unknown JSON fields are preserved on read.
+- Unknown JSON fields are tolerated on read; derived entities are rewritten from the current schema.
 
 ## JSON Schema
 
@@ -279,7 +279,13 @@ entities/contracts/<chainId>-<address>.json
 entities/versions/<chainId>-<address>@<block>.json
 entities/sources/<hash>.json
 entities/relations/<hash>.json
+topology.mmd
+architecture.mmd
 report.md
-diagrams/*.mmd
 relations.json
+evidence.json
 ```
+
+Protocol and transaction dossiers use the same layout additions documented in
+`docs/STORAGE.md` (`entities/protocols`, `entities/deployments`,
+`sequence.mmd`, `transaction.json`).

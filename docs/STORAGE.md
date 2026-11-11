@@ -122,9 +122,10 @@ The raw provider trace is preserved verbatim; normalized calls are derived. `obs
 ## Cache
 
 - `.yangjian/cache/` — solc binaries, RPC responses, and provider HTTP responses; not committed.
-- RPC cache: `cache/rpc/<endpoint-hash>/<key-hash>.json`, keyed by method, normalized
-  parameters, and block number. Only pinned-block reads and pinned headers are served
-  from cache; `latest` header lookups are always fresh. `--refresh` bypasses reads.
+- RPC cache: `cache/rpc/<endpoint-and-chain-hash>/<key-hash>.json`, keyed by method,
+  normalized parameters, and block number. Only pinned-block reads and pinned headers
+  are served from cache; `latest` header lookups are always fresh. Trace responses are
+  not stored in the RPC cache; they are dossier artifacts. `--refresh` bypasses reads.
 - Source cache: `cache/providers/{sourcify,etherscan}/<key-hash>.json`, keyed by request
   method and URL. API keys are not stored in cache keys or entries.
 - Cached provider output is evidence for reruns, not a substitute for re-querying when
