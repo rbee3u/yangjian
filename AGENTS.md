@@ -18,13 +18,13 @@ Yangjian is a local-first, read-only research system for EVM protocols. Claude C
 
 - Invoke the CLI with `--json` and read the envelope (`ok`, `data`, `error`, `meta`).
 - Use `--stage` to inspect or rerun one stage.
-- Respect `retryable` and `budget_exceeded`; do not loop indefinitely.
+- Respect `retryable` and exploration budgets; do not loop indefinitely.
 - Use the target registry; do not search by name and auto-accept the top result.
 - Report `manifest.status` and `open_questions` in conclusions.
 
 ## Workflow pointers
 
-- M1 Contract Dossier: `docs/WORKFLOW.md`
+- M1/M2/M4 workflows: `docs/WORKFLOW.md`
 - CLI contract: `docs/CLI_CONTRACT.md`
 - Data model: `docs/DATA_MODEL.md`
 - Testing: `docs/TESTING.md`

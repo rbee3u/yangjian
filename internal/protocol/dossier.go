@@ -262,8 +262,8 @@ func RunDossier(ctx context.Context, params Params) (Result, error) {
 		}
 		contractObservationCount += estimateRequests(params.ContractRoot, contract.Address.Hex())
 	}
-	if contractObservationCount >= params.MaxRequests {
-		openQuestions = appendUnique(openQuestions, fmt.Sprintf("request budget reached: %d observations across contract dossiers", contractObservationCount))
+	if contractObservationCount > params.MaxRequests {
+		openQuestions = appendUnique(openQuestions, fmt.Sprintf("request budget exceeded: %d observations across contract dossiers", contractObservationCount))
 	}
 	for _, summary := range summaries {
 		for _, question := range summary.OpenQuestions {
@@ -692,7 +692,9 @@ func discoverPool(ctx context.Context, params Params, factory, token0, token1 co
 	result.ObservationIDs = append(result.ObservationIDs, codeObservation.ID)
 	result.Found = len(code) > 0
 	result.CodeSize = len(code)
-	result.CodeHash = hashHex(crypto.Keccak256(code))
+	if len(code) > 0 {
+		result.CodeHash = hashHex(crypto.Keccak256(code))
+	}
 	return result, nil
 }
 

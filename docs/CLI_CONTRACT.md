@@ -105,8 +105,8 @@ Builds a Protocol Dossier from a target registry entry. It pins one block, disco
 | `--block latest\|<n>` | Block to pin for every discovery and contract read; default `latest` |
 | `--out <dir>` | Protocol dossier directory; default `research/<chain>/protocols/<slug>` |
 | `--contracts-root <dir>` | Contract dossier root; default `research/<chain>/contracts` |
-| `--max-contracts <n>` | Maximum contract dossiers; default `50` |
-| `--max-requests <n>` | Maximum observations across contract dossiers; default `1000` |
+| `--max-contracts <n>` | Maximum contract dossiers; `0` uses `budgets.max_contracts` (default `50`) |
+| `--max-requests <n>` | Maximum observed contract-dossier requests before further dossiers are skipped; `0` uses `budgets.max_requests_per_dossier` (default `1000`) |
 | `--refresh` | Ignore cached RPC and provider responses |
 | `--json` / `--text` | Output mode; JSON is the default |
 
@@ -222,6 +222,8 @@ Failure:
 | `budget_exceeded` | policy | no |
 | `config_invalid` | usage | no |
 | `target_not_found` | usage | no |
+
+`budget_exceeded` is reserved for a hard caller-enforced cap. Protocol budget exhaustion is recorded in `manifest.open_questions` with exit code 3 instead of discarding the evidence already collected.
 
 ## Read-only guard
 

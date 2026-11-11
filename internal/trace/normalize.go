@@ -31,6 +31,9 @@ func normalizeCallTracer(raw json.RawMessage, maxCalls int) ([]Call, []string, e
 	if err := json.Unmarshal(raw, &frame); err != nil {
 		return nil, nil, fmt.Errorf("%w: decode callTracer output: %v", ErrTraceInvalid, err)
 	}
+	if frame.From == "" && frame.To == "" && frame.Type == "" && len(frame.Calls) == 0 && frame.Input == "" {
+		return nil, nil, fmt.Errorf("%w: callTracer returned an empty frame", ErrTraceInvalid)
+	}
 	calls := make([]Call, 0)
 	warnings := make([]string, 0)
 	truncated := false

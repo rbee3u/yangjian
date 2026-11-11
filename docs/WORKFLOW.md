@@ -105,7 +105,7 @@ Trace-dependent sequence diagrams require a provider with `debug_*` or `trace_*`
 - Never claim an execution call without an `observed_call` relation backed by a trace.
 - Record chain ID, block number/hash, address, source coordinates, and provider.
 - Mark unknown or deferred facts in `open_questions`; do not substitute recent data for historical evidence.
-- Respect budgets; on `budget_exceeded`, stop and report.
+- Respect budgets; when a budget stop is recorded, stop and report.
 - Do not retry non-retryable errors; surface the code.
 
 ## Deferred workflows

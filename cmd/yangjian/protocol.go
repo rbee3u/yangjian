@@ -51,8 +51,8 @@ func (a *app) protocolCommand() *cobra.Command {
 	dossierCmd.Flags().StringVar(&opts.block, "block", "latest", "block number or latest")
 	dossierCmd.Flags().StringVar(&opts.out, "out", "", "output directory")
 	dossierCmd.Flags().StringVar(&opts.contractsOut, "contracts-root", "", "contract dossier root (default research/<chain>/contracts)")
-	dossierCmd.Flags().IntVar(&opts.maxContracts, "max-contracts", 50, "maximum contract dossiers")
-	dossierCmd.Flags().IntVar(&opts.maxRequests, "max-requests", 1000, "maximum observation requests across contract dossiers")
+	dossierCmd.Flags().IntVar(&opts.maxContracts, "max-contracts", 0, "maximum contract dossiers (0 uses config)")
+	dossierCmd.Flags().IntVar(&opts.maxRequests, "max-requests", 0, "maximum contract observations (0 uses config)")
 	dossierCmd.Flags().BoolVar(&opts.refresh, "refresh", false, "ignore cached provider responses")
 	cmd.AddCommand(dossierCmd)
 	return cmd
@@ -72,6 +72,12 @@ func (a *app) runProtocolDossier(opts *protocolOptions) error {
 		chainID = cfg.DefaultChainID
 	}
 	meta.ChainID = chainID
+	if opts.maxContracts <= 0 {
+		opts.maxContracts = cfg.Budgets.MaxContracts
+	}
+	if opts.maxRequests <= 0 {
+		opts.maxRequests = cfg.Budgets.MaxRequestsPerDossier
+	}
 	if opts.targetSlug == "" {
 		return a.fail("protocol dossier", envelope.CodeUsage, fmt.Errorf("--target is required"), start, meta)
 	}

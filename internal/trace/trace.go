@@ -423,6 +423,9 @@ func fetchTrace(ctx context.Context, params Params, blockRef model.BlockRef) (tr
 			}
 			return attempt, nil, nil, fmt.Errorf("%s failed: %w", attempt.Method, err)
 		}
+		if isJSONNull(raw) {
+			return attempt, nil, nil, fmt.Errorf("%w: %s returned null", ErrTraceInvalid, attempt.Method)
+		}
 		if len(raw) > maxTraceResponseBytes {
 			return attempt, nil, nil, fmt.Errorf("%w: trace response is %d bytes, cap is %d", ErrTraceInvalid, len(raw), maxTraceResponseBytes)
 		}
@@ -457,6 +460,7 @@ func writeFailureManifest(params Params, blockRef model.BlockRef, tx *types.Tran
 		Status:         "failed",
 		Block:          blockRef,
 		Artifacts:      artifacts,
+		ContractIDs:    []string{},
 		ObservationIDs: observationIDs,
 		RelationIDs:    []string{},
 		OpenQuestions:  []string{"trace unavailable: " + traceErr.Error()},

@@ -44,7 +44,7 @@ No random UUIDs. Observations and artifacts are deduplicated by content hash.
 |---|---|---|
 | `schema_version` | string | e.g. `1` |
 | `id` | string | content hash |
-| `kind` | enum | `rpc_call`, `source_fetch`, `build`, `analysis`, `proxy_probe`, `report` |
+| `kind` | enum | `rpc_call`, `source_fetch`, `build`, `analysis`, `proxy_probe`, `report`, `metadata_binding`, `source_crosscheck`, `static_analysis` |
 | `run_id` | string | shared with logs and envelope |
 | `request` | object | method, normalized params, URL class; secrets redacted |
 | `response_hash` | string | hash of canonical response |

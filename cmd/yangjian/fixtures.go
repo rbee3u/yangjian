@@ -167,6 +167,14 @@ func (a *app) runFixtureRecord(opts *fixtureOptions) error {
 	if err != nil {
 		return a.fail("fixtures record", envelope.CodeSourceNotFound, err, start, meta)
 	}
+	if record.ChainID != 0 && int64(record.ChainID) != chainID {
+		return a.fail("fixtures record", envelope.CodeSourceNotFound,
+			fmt.Errorf("sourcify chain id %d does not match %d", record.ChainID, chainID), start, meta)
+	}
+	if record.Address != "" && common.HexToAddress(record.Address) != pool {
+		return a.fail("fixtures record", envelope.CodeSourceNotFound,
+			fmt.Errorf("sourcify address %s does not match pool %s", record.Address, pool.Hex()), start, meta)
+	}
 	out := opts.out
 	if out == "" {
 		out = filepath.Join("testdata", "fixtures", "sourcify", entry.Slug+"-pool.json")

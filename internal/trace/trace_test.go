@@ -346,3 +346,12 @@ func TestRunTransactionRelationIDsStable(t *testing.T) {
 		t.Fatalf("relations differ: %v %v", first.RelationIDs, second.RelationIDs)
 	}
 }
+
+func TestNormalizeCallTracerRejectsEmptyFrame(t *testing.T) {
+	if _, _, err := normalizeCallTracer(json.RawMessage(`null`), 100); !errors.Is(err, ErrTraceInvalid) {
+		t.Fatalf("err = %v", err)
+	}
+	if _, _, err := normalizeCallTracer(json.RawMessage(`{}`), 100); !errors.Is(err, ErrTraceInvalid) {
+		t.Fatalf("err = %v", err)
+	}
+}

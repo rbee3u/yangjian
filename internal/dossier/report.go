@@ -77,6 +77,10 @@ func RunReport(params ReportParams) (ReportResult, error) {
 	contractABI, abiErr := loadABIArtifact(manifest, params.Store)
 	if abiErr != nil {
 		manifest.OpenQuestions = appendUnique(manifest.OpenQuestions, "ABI artifact is missing; the method table is omitted")
+	} else if state == nil {
+		if _, ok := contractABI.Methods["slot0"]; !ok {
+			manifest.OpenQuestions = removeString(manifest.OpenQuestions, "state reads not run")
+		}
 	}
 	staticAnalysis, staticErr := loadStatic(manifest, params.Store)
 	if staticErr != nil {

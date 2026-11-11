@@ -96,7 +96,7 @@ produces a capability error rather than a simulated call graph.
 
 ## 4. Adapter boundaries
 
-- `ChainClient`: block, code, storage, call, logs, trace placeholder.
+- `ChainClient`: typed block/code/storage/call reads plus a read-only raw JSON-RPC path for trace methods.
 - `SourceProvider`: Sourcify primary, Etherscan secondary.
 - `Compiler`: pinned solc binary and standard JSON.
 - `Analyzer`: solc AST facts and proxy probes.
@@ -106,11 +106,11 @@ produces a capability error rather than a simulated call graph.
 
 ## 5. Providers, concurrency, and cache
 
-Each provider has a profile (endpoint, auth reference, capabilities, rate limit, timeout, retry). Immutable responses are cached as observations; `latest` responses get a short TTL and are not long-term evidence. Work runs in a bounded worker pool with per-dossier request and time budgets.
+Each provider has a profile (endpoint, auth reference, capabilities, rate limit, timeout, retry). Immutable responses are cached as observations; `latest` responses get a short TTL and are not long-term evidence. Stages run sequentially within a dossier; contract selection and recorded observation counts are bounded by the configured budgets, and every network call has a provider timeout and retry policy.
 
 ## 6. Security
 
-Read-only; no private keys, signing, or broadcasting. Secrets come from environment variables. Solc runs as a pinned binary in a path-jailed temporary directory with resource limits; Foundry and Slither are not invoked in M1. Untrusted source, metadata, ABI, and provider output are size-limited and rendered as data, not executable content.
+Read-only; no private keys, signing, or broadcasting. Secrets come from environment variables. Solc runs as a pinned binary in a path-jailed temporary directory with resource limits; Foundry and Slither are not invoked. Untrusted source, metadata, ABI, trace, and provider output are size-limited and rendered as data, not executable content.
 
 ## 7. Output and errors
 
