@@ -132,6 +132,15 @@ func RunCode(ctx context.Context, chain ChainReader, params CodeParams) (CodeRes
 		Versions:      []string{versionID},
 		EvidenceRefs:  evidence,
 	}
+	var existingContract model.Contract
+	if err := params.Store.ReadJSON(contractRel, &existingContract); err == nil && existingContract.ID == contractID {
+		for _, id := range existingContract.Versions {
+			contract.Versions = appendUnique(contract.Versions, id)
+		}
+		for _, id := range existingContract.EvidenceRefs {
+			contract.EvidenceRefs = appendUnique(contract.EvidenceRefs, id)
+		}
+	}
 	_, contractHash, err := params.Store.WriteJSONHashed(contractRel, contract)
 	if err != nil {
 		return CodeResult{}, fmt.Errorf("write contract entity: %w", err)

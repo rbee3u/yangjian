@@ -30,10 +30,13 @@ Claude Code composes research; Yangjian never calls an LLM. All external access 
 | `internal/source` | Sourcify client, source artifacts, match modes |
 | `internal/solc` | Pinned compiler manager, download/hash verification, standard JSON execution |
 | `internal/model` | Observation, Contract, ContractVersion, SourceRevision, Relation, Manifest |
+| `internal/target` | Target registry loading and validation |
+| `internal/schema` | Runtime store-boundary validation matching the shipped JSON Schemas |
 | `internal/store` | File-first store, content addressing, observation deduplication |
 | `internal/dossier` | M1 staged pipeline: code, source, provenance, analyze, state, report |
 | `internal/protocol` | M2 protocol dossier orchestration, topology discovery, budgets, relations |
 | `internal/trace` | M4 trace adapter, normalization, observed_call relations, transaction report |
+| `internal/fixtures` | Offline fixture replay and gated live acceptance tests |
 | `internal/version` | Version, commit, build date |
 
 ## 3. Data flow

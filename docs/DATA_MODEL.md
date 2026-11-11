@@ -75,7 +75,7 @@ No random UUIDs. Observations and artifacts are deduplicated by content hash.
 | `contract_id` | string | |
 | `valid_from_block` | integer | first proven block |
 | `valid_from_source` | enum | `observed`, `estimated`, `deployment` |
-| `valid_to_block` | integer/null | null = current |
+| `valid_to_block` | integer/null | null = no later version observed; it does not assert that the version is still current |
 | `runtime_bytecode_hash` | string | keccak256 |
 | `proxy_type` | enum | `unknown`, `none`, `EIP-1967`, `EIP-1822`, `EIP-1167`, `beacon`, `other` |
 | `implementation_address` | string/null | for proxies |

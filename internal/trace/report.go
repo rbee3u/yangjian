@@ -270,7 +270,7 @@ func renderTraceReport(params Params, result Result, relations []model.Relation)
 	b.WriteString("- `sequence.mmd`, `relations.json`, `evidence.json`\n\n")
 	b.WriteString("## Scope\n\n")
 	b.WriteString("The trace records execution at the receipt block only. It does not read historical state for other blocks, and does not simulate alternate inputs. ")
-	fmt.Fprintf(&b, "The observed-call graph uses `ContractID` for addresses with runtime code at block %d and `AccountID` otherwise.\n", result.Block.Number)
+	fmt.Fprintf(&b, "The observed-call graph uses `ContractID` for addresses with runtime code at block %d and `AccountID` otherwise; endpoints whose code check failed or was skipped are marked `unknown` and `checked: false` rather than asserted to be accounts.\n", result.Block.Number)
 	return b.String()
 }
 

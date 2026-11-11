@@ -16,6 +16,7 @@ Status: Draft for approval · 2026-11-10
 | [ADRs](adr/README.md) | All accepted technical decisions |
 | [Glossary](../GLOSSARY.md) | Project language |
 | [Agent Rules](../AGENTS.md) | Stable global rules for Claude Code |
+| [Research Skill](../.claude/skills/yangjian-research/SKILL.md) | CLI workflow for Claude Code |
 
 ## Review checklist
 

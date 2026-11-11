@@ -159,7 +159,8 @@ Large observation sets should be reviewed; use Git LFS only if needed.
 ## Incremental updates
 
 - Rerun a stage with `--stage`; observations deduplicate by hash.
-- Derived entities are overwritten; manifest status and `open_questions` update.
+- The `code` stage retains previously observed ContractVersions in `Contract.versions`; the manifest still indexes only the current run.
+- Other derived entities are overwritten; manifest status and `open_questions` update.
 - Schema migrations are explicit and versioned; never silently reinterpret old dossiers.
 
 ## Secrets

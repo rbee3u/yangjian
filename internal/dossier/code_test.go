@@ -153,6 +153,28 @@ func TestRunCode(t *testing.T) {
 	if strings.Join(second.ObservationIDs, ",") != strings.Join(result.ObservationIDs, ",") {
 		t.Fatalf("observation ids changed: %v != %v", second.ObservationIDs, result.ObservationIDs)
 	}
+
+	chain.header.Number = big.NewInt(456)
+	third, err := RunCode(context.Background(), chain, CodeParams{
+		ChainID: 1,
+		Address: address,
+		Store:   st,
+		RunID:   "run-3",
+	})
+	if err != nil {
+		t.Fatalf("third run: %v", err)
+	}
+	if third.ContractVersionID == result.ContractVersionID {
+		t.Fatalf("version id did not change: %s", third.ContractVersionID)
+	}
+	var contract model.Contract
+	contractRel := "entities/contracts/1-" + strings.ToLower(address.Hex()) + ".json"
+	if err := st.ReadJSON(contractRel, &contract); err != nil {
+		t.Fatalf("contract: %v", err)
+	}
+	if len(contract.Versions) != 2 {
+		t.Fatalf("versions = %v", contract.Versions)
+	}
 }
 
 func TestRunCodeFetchFailure(t *testing.T) {
