@@ -137,6 +137,67 @@ func Load(path string) (Config, error) {
 	return cfg, nil
 }
 
+// LoadForUpdate reads the file without applying environment overrides so that
+// writing it back cannot bake a transient YANGJIAN_* value into the config.
+func LoadForUpdate(path string) (Config, error) {
+	if path == "" {
+		path = os.Getenv("YANGJIAN_CONFIG")
+	}
+	if path == "" {
+		path = DefaultPath
+	}
+	cfg := Default()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return cfg, nil
+		}
+		return Config{}, fmt.Errorf("read config %s: %w", path, err)
+	}
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return Config{}, fmt.Errorf("parse config %s: %w", path, err)
+	}
+	return cfg, nil
+}
+
+func Write(path string, cfg Config) error {
+	if path == "" {
+		path = DefaultPath
+	}
+	if err := cfg.Validate(); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return err
+	}
+	data = append(data, '\n')
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create config directory: %w", err)
+	}
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".config-*.tmp")
+	if err != nil {
+		return fmt.Errorf("create config temp file: %w", err)
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName)
+	if err := tmp.Chmod(0o600); err != nil {
+		tmp.Close()
+		return fmt.Errorf("chmod config temp file: %w", err)
+	}
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
+		return fmt.Errorf("write config temp file: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("close config temp file: %w", err)
+	}
+	if err := os.Rename(tmpName, path); err != nil {
+		return fmt.Errorf("replace config: %w", err)
+	}
+	return nil
+}
+
 func (c Config) Validate() error {
 	if c.SchemaVersion != SchemaVersion {
 		return fmt.Errorf("unsupported config schema_version %q", c.SchemaVersion)

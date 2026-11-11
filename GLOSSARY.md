@@ -144,6 +144,10 @@ _Avoid_: Address book, allowlist
 A named configuration for a data source, including endpoint, auth reference, rate limits, timeout, and retry policy; provider capabilities such as trace support are probed at runtime.
 _Avoid_: Config, provider config
 
+**RPC Endpoint Registry**:
+The local inventory of probed RPC endpoints, each with its source, capability observations, health status, and recent check history. It is separate from a Provider Profile and does not promote an endpoint to the default profile without an explicit selection.
+_Avoid_: Node list, RPC config
+
 **Exploration Budget**:
 The per-dossier limits on contract count and request count that bound topology discovery; the current role selection has no recursive depth, so the configured depth budget is reserved.
 _Avoid_: Limit, cap

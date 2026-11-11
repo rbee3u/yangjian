@@ -27,6 +27,7 @@ Claude Code composes research; Yangjian never calls an LLM. All external access 
 | `cmd/yangjian` | Cobra commands, flags, envelope, exit codes |
 | `internal/config` | JSON config, env overrides, provider profiles |
 | `internal/chain` | RPC client, block references, rate limiting, retries |
+| `internal/rpcprobe` | Local RPC endpoint registry, read-only capability probes, health checks |
 | `internal/source` | Sourcify client, source artifacts, match modes |
 | `internal/solc` | Pinned compiler manager, download/hash verification, standard JSON execution |
 | `internal/model` | Observation, Contract, ContractVersion, SourceRevision, Relation, Manifest |
@@ -109,7 +110,7 @@ produces a capability error rather than a simulated call graph.
 
 ## 5. Providers, concurrency, and cache
 
-Each provider has a profile (endpoint, auth reference, rate limit, timeout, retry); trace capability is probed at runtime rather than assumed from the profile. Pinned-block responses are cached; `latest` header, code, storage, and call reads always hit the provider and are not long-term evidence. Stages run sequentially within a dossier; contract selection and recorded observation counts are bounded by the configured budgets, and every network call has a provider timeout and retry policy.
+Each provider has a profile (endpoint, auth reference, rate limit, timeout, retry); trace capability is probed at runtime rather than assumed from the profile. The local RPC endpoint registry records which endpoints were observed to support blocks, logs, archive state, trace, and related methods, separately from their health; a capability is evidence from one probe, not a permanent property of the provider. Pinned-block responses are cached; `latest` header, code, storage, and call reads always hit the provider and are not long-term evidence. Stages run sequentially within a dossier; contract selection and recorded observation counts are bounded by the configured budgets, and every network call has a provider timeout and retry policy.
 
 ## 6. Security
 

@@ -21,6 +21,29 @@ Prints version, commit, build date, and Go version.
 
 Writes a documented example config with provider profiles and `api_key_env` references. `--force` overwrites an existing file.
 
+### `yangjian rpc import|probe|check|list|use`
+
+The RPC registry is a local inventory at `.yangjian/rpc-endpoints.json` (override with `--registry` or `YANGJIAN_RPC_REGISTRY`). It records endpoint provenance, capability flags, health, and a short check history. Capabilities are point-in-time observations from this machine, not guarantees.
+
+| Command | Behavior |
+|---|---|
+| `rpc import --from-chainlist <path> [--apply]` | Parses a downloaded chainlist `rpcs.json`, keeps the requested chain's HTTP/WS URLs, and writes candidates only with `--apply`. It never probes or selects a default. URLs with missing `${VAR}` references are imported disabled. |
+| `rpc probe --url <url> [--name <name>] [--register]` | Runs the read-only probe suite: chain ID, latest block, code/call/storage, logs, proof, fee history, archive reads at block 12,965,000, batch, optional WebSocket, `debug_traceTransaction` callTracer, and `trace_transaction`. `--no-trace` skips the last two. `--register` upserts the result; wrong-chain and unconfigured endpoints are stored disabled. |
+| `rpc check [--name <n>]... [--status <s>]... [--all]` | Probes selected endpoints concurrently and merges each result into `health` and `history`. `meta.status` is `partial` when an enabled endpoint is not `ok`. `--no-save` leaves the file unchanged; `--delay` spaces probe starts for rate-limited providers. |
+| `rpc list [--capability logs] [--status ok]` | Prints the inventory. Capability names: `blocks`, `logs`, `call`, `code`, `storage`, `proof`, `fee_history`, `archive`, `debug_trace`, `parity_trace`, `trace`, `batch`, `websocket`. |
+| `rpc enable <name>` / `rpc disable <name>` | Flips the endpoint's `enabled` flag without deleting its history; `--note` replaces the note. |
+| `rpc use <name> [--print]` | Points `providers.rpc.default.endpoint` at a healthy endpoint, or with `--print` emits `YANGJIAN_RPC_URL=...` without writing the config. |
+
+Examples:
+
+```sh
+yangjian rpc probe --url https://ethereum-rpc.publicnode.com --name publicnode --register --json
+yangjian rpc check --name publicnode --json
+yangjian rpc check --status rate_limited --concurrency 1 --delay 3s --json
+yangjian rpc list --capability logs --json
+yangjian rpc use publicnode --print
+```
+
 ### `yangjian contract dossier`
 
 Runs the M1 pipeline or one stage.

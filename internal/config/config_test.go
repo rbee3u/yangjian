@@ -127,3 +127,33 @@ func TestAPIKeyEnv(t *testing.T) {
 		t.Fatalf("empty api key = %q", got)
 	}
 }
+
+func TestWriteAndLoadForUpdate(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+	cfg, err := LoadForUpdate(path)
+	if err != nil {
+		t.Fatalf("load missing: %v", err)
+	}
+	profile := cfg.Providers.RPC["default"]
+	profile.Endpoint = "https://example.invalid/rpc"
+	cfg.Providers.RPC["default"] = profile
+	if err := Write(path, cfg); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	t.Setenv("YANGJIAN_RPC_URL", "https://env.invalid")
+	updated, err := LoadForUpdate(path)
+	if err != nil {
+		t.Fatalf("load for update: %v", err)
+	}
+	if updated.RPCProfile().Endpoint != "https://example.invalid/rpc" {
+		t.Fatalf("endpoint = %s", updated.RPCProfile().Endpoint)
+	}
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	if loaded.RPCProfile().Endpoint != "https://env.invalid" {
+		t.Fatalf("env override = %s", loaded.RPCProfile().Endpoint)
+	}
+}

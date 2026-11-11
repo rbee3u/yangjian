@@ -7,3 +7,5 @@
 /.env
 coverage.out
 *.test
+/.yangjian/rpc-endpoints.json
+/.yangjian/tmp/

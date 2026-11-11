@@ -20,6 +20,7 @@ Yangjian is a local-first, read-only research system for EVM protocols. Claude C
 - Use `--stage` to inspect or rerun one stage.
 - Respect `retryable` and exploration budgets; do not loop indefinitely.
 - Use the target registry; do not search by name and auto-accept the top result.
+- Use the RPC endpoint registry; probe an endpoint before using it and never auto-accept a chainlist suggestion. Report its `health.status` and the capabilities the research needs.
 - Report `manifest.status` and `open_questions` in conclusions.
 
 ## Workflow pointers
@@ -29,6 +30,7 @@ Yangjian is a local-first, read-only research system for EVM protocols. Claude C
 - Data model: `docs/DATA_MODEL.md`
 - Testing: `docs/TESTING.md`
 - Storage: `docs/STORAGE.md`
+- RPC endpoint registry: `docs/RPC_REGISTRY.md`
 - Decisions: `docs/adr/`
 
 ## Language
@@ -42,5 +44,6 @@ Stop and report when:
 - a required address is not in the registry and the user has not supplied one;
 - provenance P2 fails and the fallback is P0/unproven;
 - a provider capability is missing (for example, historical state without archive);
+- no enabled registry endpoint with the required capability passes a health check;
 - an exploration or request budget is exceeded;
 - source or trace evidence is unavailable. Never substitute guesswork.

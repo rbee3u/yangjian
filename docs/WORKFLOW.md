@@ -104,6 +104,7 @@ Trace-dependent sequence diagrams require a provider with `debug_*` or `trace_*`
 - Never claim source match without a provenance level and evidence refs.
 - Never claim an execution call without an `observed_call` relation backed by a trace.
 - Record chain ID, block number/hash, address, source coordinates, and provider.
+- Select a provider through the local RPC endpoint registry (`yangjian rpc ...`; see `docs/RPC_REGISTRY.md`). Do not assume a public endpoint serves logs, archive state, or trace; probe it and report the capability actually observed.
 - Mark unknown or deferred facts in `open_questions`; do not substitute recent data for historical evidence.
 - Respect budgets; when a budget stop is recorded, stop and report.
 - Do not retry non-retryable errors; surface the code.

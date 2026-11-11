@@ -12,7 +12,7 @@ Status: Draft for approval · 2026-11-10
 
 ## Layers
 
-1. **Unit tests** — IDs, envelope, error mapping, config precedence, cache keys, provenance diffing, proxy slot derivation, relation validation.
+1. **Unit tests** — IDs, envelope, error mapping, config precedence, cache keys, provenance diffing, proxy slot derivation, relation validation, RPC capability classification, and registry health/history merging. RPC probe tests use a fake JSON-RPC server and assert argument arity, chain-ID mismatch, rate limits, auth, archive pruning, logs range limits, and trace gaps.
 2. **Fixture tests** — recorded Sourcify/Etherscan/RPC responses replay through the pipeline; compare entities, manifest, and report structure against golden files.
 3. **Live integration tests** — gated; hit providers at latest; assert invariants, not exact values.
 
@@ -47,6 +47,7 @@ Cover at least:
 - Invalid config, missing target registry entry.
 - Trace: method unsupported, invalid trace JSON, oversized trace, code check failure, transaction or receipt missing.
 - RPC chain-ID mismatch before any dossier evidence is written.
+- RPC registry: wrong chain, missing environment reference, HTTP 401/403/429, pruned archive state, logs range limit, and unsupported trace methods.
 
 ## Acceptance
 
