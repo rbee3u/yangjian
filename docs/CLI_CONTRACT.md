@@ -29,6 +29,7 @@ Runs the M1 pipeline or one stage.
 | `--chain <id>` | Chain ID; default from config |
 | `--address <0x...>` | Target contract address |
 | `--target <slug>` | Resolve the address from the target registry; mutually exclusive with `--address` |
+| `--contract <name>` | Contract name in the registry when `--target` is used; default `factory` |
 | `--block latest\|<n>` | Block to pin; default `latest` |
 | `--out <dir>` | Dossier directory; default `research/<chain>/contracts/<address>` |
 | `--stage <stage>` | Run one stage: `code`, `source`, `provenance`, `analyze`, `state`, `report` |
@@ -90,7 +91,7 @@ A successful P2 comparison sets `provenance_level` to `P2` and `correspondence` 
 - `state` performs pinned-block `eth_call` reads for `slot0()`, `liquidity()`, `ticks(currentTick)`, and Uniswap V3 pool immutables. It records `artifacts/state.json` and writes three `onchain_reference` relations (token0, token1, factory).
 - `report` writes `report.md`, `topology.mmd`, `architecture.mmd`, `relations.json`, and `evidence.json`. It renders only recorded facts and lists missing stages in `open_questions`.
 
-`--refresh` bypasses the RPC response cache and the Sourcify/Etherscan HTTP cache. Cached entries are written under `.yangjian/cache/`; the cache key includes the provider profile, method, normalized parameters, and block number/tag. `latest` header lookups are not served from cache.
+`--refresh` bypasses the RPC response cache and the Sourcify/Etherscan HTTP cache. Cached entries are written under `.yangjian/cache/`; the cache key includes the provider profile, method, normalized parameters, and block number/tag. `latest` header, code, storage, and call reads are neither served from nor written to the cache.
 
 ## M2 commands
 
@@ -141,7 +142,7 @@ Reads one transaction trace from the configured RPC and writes a transaction dos
 | `--refresh` | Ignore cached `eth_getCode` reads used to classify call endpoints |
 | `--json` / `--text` | Output mode; JSON is the default |
 
-The command first records `eth_getTransactionByHash` and `eth_getTransactionReceipt`, then tries `debug_traceTransaction` with `{"tracer":"callTracer"}` and falls back to `trace_transaction` only when the first method is unsupported. It preserves the raw provider response and writes normalized call frames with path, depth, call type, selector, input/output hashes, gas, value, and error fields. Every call frame with both endpoints becomes an `observed_call` relation whose `from`/`to` use `ContractID` when `eth_getCode` returns code at the receipt block and `AccountID` otherwise. The command writes `transaction.json`, `report.md`, `sequence.mmd`, `relations.json`, `evidence.json`, and a manifest.
+The command first records `eth_getTransactionByHash` and `eth_getTransactionReceipt`, then tries `debug_traceTransaction` with `{"tracer":"callTracer"}` and falls back to `trace_transaction` only when the first method is unsupported. It preserves the raw provider response and writes normalized call frames with path, depth, call type, selector, input/output hashes, gas, value, and error fields. Every call frame with both endpoints becomes an `observed_call` relation whose `from`/`to` use `ContractID` when `eth_getCode` returns code at the receipt block and `AccountID` otherwise. Relations record `from_checked`/`to_checked`; a failed or budget-skipped check yields kind `unknown` and is listed in `open_questions` rather than being reported as a proven account. The command writes `transaction.json`, `report.md`, `sequence.mmd`, `relations.json`, `evidence.json`, and a manifest.
 
 An execution revert is evidence (`status: 0` and call errors), not an operational failure. A provider without either trace method returns `rpc_method_unsupported`; an unreadable trace returns `trace_invalid`. Trace responses are capped at 32 MiB and 10,000 normalized call frames, with truncation recorded as an open question. No trace call is cached in the RPC response cache; the raw response is kept in the dossier.
 
@@ -222,6 +223,9 @@ Failure:
 | `budget_exceeded` | policy | no |
 | `config_invalid` | usage | no |
 | `target_not_found` | usage | no |
+| `usage` | usage | no |
+| `stage_not_implemented` | internal | no |
+| `internal` | internal | no |
 
 `budget_exceeded` is reserved for a hard caller-enforced cap. Protocol budget exhaustion is recorded in `manifest.open_questions` with exit code 3 instead of discarding the evidence already collected.
 

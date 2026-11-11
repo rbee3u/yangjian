@@ -103,9 +103,22 @@ func TestCachedClient(t *testing.T) {
 		if _, err := cached.HeaderByNumber(ctx, nil); err != nil {
 			t.Fatal(err)
 		}
+		if _, err := cached.CodeAt(ctx, address, nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := cached.StorageAt(ctx, address, slot, nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := cached.CallContract(ctx, ethereum.CallMsg{To: &address, Data: []byte{0x01}}, nil); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if reader.headerCalls != 4 {
 		t.Fatalf("latest header was cached: %d calls", reader.headerCalls)
+	}
+	if reader.codeCalls != 4 || reader.storageCalls != 3 || reader.callCalls != 3 {
+		t.Fatalf("latest reads were cached: code %d storage %d call %d",
+			reader.codeCalls, reader.storageCalls, reader.callCalls)
 	}
 }
 

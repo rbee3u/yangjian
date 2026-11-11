@@ -262,7 +262,7 @@ func TestRunTransactionMissingReceipt(t *testing.T) {
 func TestRunTransactionCodeCheckFailure(t *testing.T) {
 	rpc := newFakeRPC()
 	rpc.codeErrs[testRouter] = errors.New("code unavailable")
-	_, result, err := runTraceFixture(t, rpc)
+	st, result, err := runTraceFixture(t, rpc)
 	if err != nil {
 		t.Fatalf("run trace: %v", err)
 	}
@@ -277,6 +277,13 @@ func TestRunTransactionCodeCheckFailure(t *testing.T) {
 	}
 	if len(result.RelationIDs) != 2 {
 		t.Fatalf("relations = %v", result.RelationIDs)
+	}
+	var relation model.Relation
+	if err := st.ReadJSON(relationPath(result.RelationIDs[0]), &relation); err != nil {
+		t.Fatal(err)
+	}
+	if relation.Attributes["to_kind"] != "unknown" || relation.Attributes["to_checked"] != false {
+		t.Fatalf("unclassified endpoint attributes = %v", relation.Attributes)
 	}
 }
 

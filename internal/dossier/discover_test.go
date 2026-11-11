@@ -150,6 +150,9 @@ func TestRunDiscoverNoCode(t *testing.T) {
 	if result.Found || result.Pool != pool.Hex() || result.PoolCodeSize != 0 {
 		t.Fatalf("result = %+v", result)
 	}
+	if result.PoolCodeHash != "" {
+		t.Fatalf("empty code must not report a pool code hash: %+v", result)
+	}
 	if len(result.ObservationIDs) != 3 {
 		t.Fatalf("observations = %v", result.ObservationIDs)
 	}

@@ -71,4 +71,10 @@ func TestTargetValidate(t *testing.T) {
 	if err := bad.Validate(); err == nil {
 		t.Fatal("expected invalid pool pair error")
 	}
+
+	bad = valid
+	bad.Slug = "../escape"
+	if err := bad.Validate(); err == nil {
+		t.Fatal("expected invalid slug error")
+	}
 }

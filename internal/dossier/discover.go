@@ -181,7 +181,10 @@ func RunDiscover(ctx context.Context, params DiscoverParams) (DiscoveryResult, e
 			return DiscoveryResult{}, fmt.Errorf("fetch pool runtime code: %w", err)
 		}
 		codeSize = len(code)
-		codeHash = hashHex(crypto.Keccak256(code))
+		codeResponseHash := hashHex(crypto.Keccak256(code))
+		if codeSize > 0 {
+			codeHash = codeResponseHash
+		}
 		codeObs, err := params.Store.WriteObservation(model.Observation{
 			SchemaVersion: model.SchemaVersion,
 			Kind:          "rpc_call",
@@ -190,7 +193,7 @@ func RunDiscover(ctx context.Context, params DiscoverParams) (DiscoveryResult, e
 				"method": "eth_getCode",
 				"params": []any{strings.ToLower(pool.Hex()), fmt.Sprintf("0x%x", blockNumber)},
 			},
-			ResponseHash: codeHash,
+			ResponseHash: codeResponseHash,
 			Block:        &blockRef,
 			RetrievedAt:  now,
 			Source:       model.SourceRef{Provider: "rpc", EndpointClass: "configured"},

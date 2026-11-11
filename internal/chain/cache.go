@@ -63,12 +63,8 @@ func (c *CachedClient) RawCall(ctx context.Context, result any, method string, a
 
 func (c *CachedClient) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 	if number == nil {
-		header, err := c.inner.HeaderByNumber(ctx, nil)
-		if err == nil && header != nil && header.Number != nil {
-			key := cacheKey("eth_getBlockByNumber", header.Number.String())
-			_ = c.cache.put(key, header)
-		}
-		return header, err
+		// Latest is never evidence and must not be pinned by the cache.
+		return c.inner.HeaderByNumber(ctx, nil)
 	}
 	key := cacheKey("eth_getBlockByNumber", number.String())
 	if !c.refresh {
@@ -87,7 +83,7 @@ func (c *CachedClient) HeaderByNumber(ctx context.Context, number *big.Int) (*ty
 
 func (c *CachedClient) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
 	key := cacheKey("eth_getCode", account.Hex(), blockLabel(blockNumber))
-	if !c.refresh {
+	if blockNumber != nil && !c.refresh {
 		var encoded string
 		if c.cache.get(key, &encoded) {
 			code, err := hex.DecodeString(encoded)
@@ -100,13 +96,15 @@ func (c *CachedClient) CodeAt(ctx context.Context, account common.Address, block
 	if err != nil {
 		return nil, err
 	}
-	_ = c.cache.put(key, hex.EncodeToString(code))
+	if blockNumber != nil {
+		_ = c.cache.put(key, hex.EncodeToString(code))
+	}
 	return code, nil
 }
 
 func (c *CachedClient) StorageAt(ctx context.Context, account common.Address, slot common.Hash, blockNumber *big.Int) ([]byte, error) {
 	key := cacheKey("eth_getStorageAt", account.Hex(), slot.Hex(), blockLabel(blockNumber))
-	if !c.refresh {
+	if blockNumber != nil && !c.refresh {
 		var encoded string
 		if c.cache.get(key, &encoded) {
 			value, err := hex.DecodeString(encoded)
@@ -119,7 +117,9 @@ func (c *CachedClient) StorageAt(ctx context.Context, account common.Address, sl
 	if err != nil {
 		return nil, err
 	}
-	_ = c.cache.put(key, hex.EncodeToString(value))
+	if blockNumber != nil {
+		_ = c.cache.put(key, hex.EncodeToString(value))
+	}
 	return value, nil
 }
 
@@ -131,7 +131,7 @@ func (c *CachedClient) CallContract(ctx context.Context, call ethereum.CallMsg, 
 	key := cacheKey("eth_call", blockLabel(blockNumber), call.From.Hex(), addressLabel(call.To),
 		hex.EncodeToString(call.Data), bigLabel(call.Value), bigLabel(call.GasPrice),
 		bigLabel(call.GasFeeCap), bigLabel(call.GasTipCap), fmt.Sprintf("%d", call.Gas), accessList)
-	if !c.refresh {
+	if blockNumber != nil && !c.refresh {
 		var encoded string
 		if c.cache.get(key, &encoded) {
 			result, err := hex.DecodeString(encoded)
@@ -144,7 +144,9 @@ func (c *CachedClient) CallContract(ctx context.Context, call ethereum.CallMsg, 
 	if err != nil {
 		return nil, err
 	}
-	_ = c.cache.put(key, hex.EncodeToString(result))
+	if blockNumber != nil {
+		_ = c.cache.put(key, hex.EncodeToString(result))
+	}
 	return result, nil
 }
 

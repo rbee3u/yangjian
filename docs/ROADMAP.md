@@ -2,7 +2,7 @@
 
 Status: Draft for approval · 2026-11-10
 
-Current status: M1 Contract Dossier and M2 Protocol Dossier are implemented. The M1 pipeline covers pool discovery, `code`, `source`, `provenance`, `analyze` (proxy detection plus static structure), `state` (pool immutables and three `onchain_reference` relations), and `report`. The latest M2 live run at block 26385739 discovered the Uniswap V3 USDC/WETH 0.3% pool from the factory, produced P2/proven for Factory, Pool, NPM, and SwapRouter02, recorded protocol relations (`getPool`, `factory`, `WETH9`), aggregated 7 `onchain_reference` relations and the contract `source_dependency` relations, and finished with manifest status `complete`. P1 metadata binding, beacon implementation resolution, Etherscan cross-check, RPC/provider caching, and `--refresh` are implemented. JSON Schemas, store-boundary validation, and the fixture/golden replay are implemented. Etherscan live acceptance is skipped until an API key is configured; the client and comparison logic are covered by offline tests.
+Current status: M1 Contract Dossier and M2 Protocol Dossier are implemented. The M1 pipeline covers pool discovery, `code`, `source`, `provenance`, `analyze` (proxy detection plus static structure), `state` (pool immutables and three `onchain_reference` relations), and `report`. The latest M2 live run at block 26388286 discovered the Uniswap V3 USDC/WETH 0.3% pool from the factory, produced P2/proven for Factory, Pool, NPM, and SwapRouter02, recorded protocol relations (`getPool`, `factory`, `WETH9`), aggregated 7 `onchain_reference` relations and the contract `source_dependency` relations, and finished with manifest status `complete`. P1 metadata binding, beacon implementation resolution, Etherscan cross-check, RPC/provider caching, and `--refresh` are implemented. JSON Schemas, store-boundary validation, and the fixture/golden replay are implemented. Etherscan live acceptance is skipped until an API key is configured; the client and comparison logic are covered by offline tests.
 
 ## M0 — Design
 
@@ -48,7 +48,7 @@ Steps:
 3. Contract dossiers for Factory, Pool, and NonfungiblePositionManager; Router if source is available (implemented; Router is selected from the registry).
 4. Relations: Factory→Pool, Pool→tokens/factory, NPM→Factory, Router→Factory/WETH9 via pinned-block on-chain reads; source dependencies stay in contract dossiers and are aggregated; no `observed_call` (implemented).
 5. Topology and architecture diagrams; protocol report; manifest; open questions (implemented).
-6. Respect budgets: default 50 contracts and 1000 observations per dossier run, with depth 2 by construction (implemented).
+6. Respect budgets: default 50 contracts and 1000 observations per dossier run; selection is a fixed four-role topology with no recursive crawl, so `budgets.max_depth` is reserved (implemented).
 
 Definition of done: the Uniswap V3 deployment topology is reproducible from evidence, with every relation typed and sourced. M2 itself reads no trace; M4 adds transaction sequence diagrams behind a trace-provider capability probe. The live M2 acceptance run is recorded in `research/1/protocols/uniswap-v3/`.
 

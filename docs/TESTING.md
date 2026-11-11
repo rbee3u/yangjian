@@ -49,14 +49,20 @@ Cover at least:
 
 ## Acceptance
 
-M1 fixture: Uniswap V3 USDC/WETH 0.3% Pool.
+Offline fixture acceptance: Uniswap V3 USDC/WETH 0.3% Pool source layer.
 
-- Discover the pool from `getPool(USDC, WETH, 3000)` at the pinned block.
-- Assert runtime bytecode hash, proxy negative, Sourcify match mode, compiler `0.7.6+commit.7338295f`, optimizer 800.
-- Assert ABI, storage layout, inheritance, `slot0`, `liquidity`, `ticks(currentTick)`.
-- Assert `onchain_reference` relations to token0/token1/factory and `source_dependency` relations.
-- Assert report, diagrams, `relations.json`, `manifest.json`, and evidence index.
-- Assert no `observed_call` relation.
+- The recorded fixture pins the pool block, runtime bytecode, and Sourcify record;
+  `yangjian fixtures record` performs the live `getPool(USDC, WETH, 3000)` discovery
+  before writing it.
+- Replay asserts the runtime bytecode hash and size, Sourcify match mode, compiler
+  `0.7.6+commit.7338295f`, source count, zero source-hash mismatches, ABI hash, and
+  the SourceRevision ID.
+- Replay does not run solc, proxy probes, state reads, or report generation. Those
+  layers are covered by fake-based unit tests, and the full M1 acceptance is the
+  live dossier run recorded under `research/`.
+- Full acceptance additionally checks storage layout, inheritance, `slot0`,
+  `liquidity`, `ticks(currentTick)`, `onchain_reference` and `source_dependency`
+  relations, report/diagrams/evidence index, and the absence of `observed_call`.
 
 M2 protocol acceptance: run `yangjian protocol dossier` against the Uniswap V3 target and assert pool discovery from `getPool`, four contract dossiers, protocol `getPool`/`factory`/`WETH9` relations, aggregated pool relations, topology, and no `observed_call`.
 

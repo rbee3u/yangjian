@@ -491,7 +491,7 @@ func classifyEndpoints(ctx context.Context, params Params, calls []Call, blockRe
 		}
 		if len(observations) >= params.MaxCodeChecks {
 			warnings = appendUnique(warnings, fmt.Sprintf("code checks stopped at %d unique addresses; some observed_call endpoints are unclassified", params.MaxCodeChecks))
-			endpoints[address] = endpoint{ID: model.AccountID(params.ChainID, address), Kind: "account", Checked: false}
+			endpoints[address] = endpoint{ID: model.AccountID(params.ChainID, address), Kind: "unknown", Checked: false}
 			continue
 		}
 		code, err := params.RPC.CodeAt(ctx, common.HexToAddress(address), blockNumber)
@@ -522,7 +522,7 @@ func classifyEndpoints(ctx context.Context, params Params, calls []Call, blockRe
 		observations = append(observations, obs.ID)
 		if err != nil {
 			warnings = appendUnique(warnings, fmt.Sprintf("code check failed for %s: %v", shortAddress(address), err))
-			endpoints[address] = endpoint{ID: model.AccountID(params.ChainID, address), Kind: "account", Checked: false}
+			endpoints[address] = endpoint{ID: model.AccountID(params.ChainID, address), Kind: "unknown", Checked: false}
 			continue
 		}
 		if len(code) > 0 {
@@ -553,6 +553,8 @@ func writeObservedCall(params Params, blockRef model.BlockRef, observationID, tr
 		"selector":          call.Selector,
 		"from_kind":         from.Kind,
 		"to_kind":           to.Kind,
+		"from_checked":      from.Checked,
+		"to_checked":        to.Checked,
 		"contract_creation": call.Type == "create" || call.Type == "create2",
 	}
 	if from.CodeSize > 0 {

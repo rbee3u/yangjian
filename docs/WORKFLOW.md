@@ -10,7 +10,7 @@ The original six phases remain a coverage checklist, but execution is iterative:
 2. **Contract Evidence** — runtime code, proxy probe, source artifacts, build facts.
 3. **Source Provenance** — P0–P3; bind source to deployed bytecode.
 4. **Static Structure** — inheritance, storage layout, immutables, ABI, call sites.
-5. **State Reads** — pinned-block `eth_call`, storage, logs.
+5. **State Reads** — pinned-block `eth_call` and targeted `eth_getStorageAt`; event-log scans are deferred.
 6. **Topology and Report** — typed relations, diagrams, dossier, open questions.
 
 Deployment discovery and source provenance iterate: an address reveals source, and source constants reveal more addresses.
@@ -92,7 +92,7 @@ yangjian trace transaction --chain 1 --tx 0x... --json
 1. Read the transaction and receipt by hash; pin the receipt block number and hash.
 2. Try `debug_traceTransaction` with `callTracer`; if the method is unsupported, try `trace_transaction`. Unsupported providers are reported, not emulated.
 3. Preserve the raw trace, then normalize calls with path, type, selector, input/output hashes, gas, value, and errors. The normalized frame count is capped at 10,000; the raw response is capped at 32 MiB.
-4. Classify every unique call endpoint with `eth_getCode` at the receipt block. `observed_call` relations use `ContractID` for code-bearing addresses and `AccountID` for EOAs and precompiles, so a traced call is never confused with a static dependency.
+4. Classify every unique call endpoint with `eth_getCode` at the receipt block. `observed_call` relations use `ContractID` for code-bearing addresses and `AccountID` for EOAs and precompiles, so a traced call is never confused with a static dependency. A failed or budget-skipped check is recorded as kind `unknown` with `checked: false`, not as a proven account.
 5. Write `transaction.json`, `report.md`, `sequence.mmd`, `relations.json`, `evidence.json`, and a manifest. Reverts stay as evidence (`status: 0`, call errors), not as fabricated failure results.
 
 Trace-dependent sequence diagrams require a provider with `debug_*` or `trace_*`; a public endpoint that exposes neither returns `rpc_method_unsupported`.

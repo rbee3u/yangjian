@@ -19,7 +19,7 @@ Status: Draft for approval · 2026-11-10
 | solc compilation | Go binding; subprocess | pinned solc subprocess | no mature Go binding; verify solc-bin hashes |
 | AST / storage layout / inheritance | solc standard JSON; Slither; Foundry; Surya; Go parsers | solc standard JSON | authoritative and version-pinned; AST shapes evolve |
 | Call graph / access control | Slither/Surya DOT; custom AST | heuristic or deferred | no stable JSON |
-| Proxy detection | Go implementation; Sourcify `proxyResolution`; Etherscan labels | Go EIP-1967/1822/1167 + events; Sourcify cross-check | no established Go library; explorer labels can be false positives |
+| Proxy detection | Go implementation; Sourcify `proxyResolution`; Etherscan labels | Go EIP-1967/1822 slots, EIP-1167 bytecode, beacon `implementation()`; event/explorer cross-checks deferred | no established Go library; explorer labels can be false positives |
 | Historical state | archive RPC; free key; local node | deferred; free key later | free tiers include archive state but not debug/trace |
 | Traces | `debug_traceTransaction`; `trace_transaction`; Tenderly | `internal/trace` adapter with callTracer first and parity trace second | `debug_*` + callTracer most supported; `trace_*` is Erigon/Parity |
 | Local simulation | anvil fork; geth dev; reth | optional later | anvil fork needs an archive upstream for old blocks; not a substitute for a real trace |

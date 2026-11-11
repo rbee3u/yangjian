@@ -777,9 +777,12 @@ func md(value string) string {
 }
 
 func mermaid(value string) string {
-	value = strings.ReplaceAll(value, "\"", "#quot;")
-	value = strings.ReplaceAll(value, "\n", " ")
-	return value
+	replacer := strings.NewReplacer(
+		"\"", "#quot;", "\n", " ", "\r", " ",
+		"[", "(", "]", ")", "{", "(", "}", ")",
+		";", ",",
+	)
+	return replacer.Replace(value)
 }
 
 func hexBytes(value []byte) string {

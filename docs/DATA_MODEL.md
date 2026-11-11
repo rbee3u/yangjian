@@ -119,7 +119,7 @@ Type-specific requirements:
 
 - `source_dependency`: source path and symbol. Import relations point from `source:<revision>#<path>` to a content-addressed source file; inheritance relations point from a derived source coordinate to its base contract coordinate. Attributes record `relation`, `source_path`, `symbol`, and `source_revision_id`.
 - `onchain_reference`: method or event, block number/hash. M1 pool relations record `method`, `selector`, `address`, `block_hash`, and `observation_id`. Protocol dossiers additionally record `role`/`source_role` and, for NPM/Router factory reads, whether the returned address matches the registry factory. Protocol `relations.json` aggregates protocol-owned relations with relations read from referenced contract dossiers; contract dossiers remain the owners.
-- `observed_call`: transaction hash, trace reference, call path. M4 also records call type, selector, and whether each endpoint was a contract or an account at the receipt block. `from`/`to` use `ContractID` when `eth_getCode` returned code and `AccountID` otherwise.
+- `observed_call`: transaction hash, trace reference, call path. M4 also records call type, selector, and whether each endpoint was a contract or an account at the receipt block. `from`/`to` use `ContractID` when `eth_getCode` returned code and `AccountID` otherwise. A failed or budget-skipped code check stores the endpoint as `AccountID` with kind `unknown` and `from_checked`/`to_checked` false, plus an open question; it is not silently treated as a proven account.
 - `inferred_relation`: heuristic name and rule version; never rendered as a fact.
 
 `observed_call` is the only relation type allowed to represent execution. A source call site or an address read never becomes an `observed_call` without a trace observation.
@@ -268,7 +268,7 @@ Files under `schemas/`:
 - `protocol.schema.json`
 - `deployment.schema.json`
 
-All schemas use JSON Schema draft 2020-12, require `schema_version`, and preserve unknown fields where forward compatibility matters. `internal/schema` enforces the same structural invariants at store write and read boundaries without a JSON Schema dependency; `internal/schema/schema_test.go` checks the shipped schema files parse and cover the entity set. The schemas are the machine-readable tool contract for tests and the coding agent.
+All schemas use JSON Schema draft 2020-12, require `schema_version`, and allow additional properties where forward compatibility matters. `internal/schema` enforces the same structural invariants at store write and read boundaries without a JSON Schema dependency; `internal/schema/schema_test.go` checks the shipped schema files parse and cover the entity set. The schemas are the machine-readable tool contract for tests and the coding agent.
 
 ## Storage mapping
 
