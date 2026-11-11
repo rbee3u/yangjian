@@ -257,7 +257,7 @@ Contracts with `metadata.bytecodeHash = none` skip P1 and go directly to P2. If 
 
 ## JSON Schema
 
-Planned files under `schemas/`:
+Files under `schemas/`:
 
 - `observation.schema.json`
 - `contract.schema.json`
@@ -265,8 +265,10 @@ Planned files under `schemas/`:
 - `source_revision.schema.json`
 - `relation.schema.json`
 - `manifest.schema.json`
+- `protocol.schema.json`
+- `deployment.schema.json`
 
-All schemas use JSON Schema draft 2020-12, require `schema_version`, and preserve unknown fields where forward compatibility matters. The CLI validates writes and reads; the same schemas are the machine-readable tool contract for tests and the coding agent.
+All schemas use JSON Schema draft 2020-12, require `schema_version`, and preserve unknown fields where forward compatibility matters. `internal/schema` enforces the same structural invariants at store write and read boundaries without a JSON Schema dependency; `internal/schema/schema_test.go` checks the shipped schema files parse and cover the entity set. The schemas are the machine-readable tool contract for tests and the coding agent.
 
 ## Storage mapping
 

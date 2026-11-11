@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rbee3u/yangjian/internal/model"
@@ -274,9 +275,15 @@ func TestRunProvenanceNeedsSource(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := st.WriteJSON("manifest.json", model.Manifest{
-		SchemaVersion: model.SchemaVersion,
-		DossierType:   "contract",
-		Status:        "partial",
+		SchemaVersion:  model.SchemaVersion,
+		DossierType:    "contract",
+		Target:         model.TargetRef{ChainID: 1, Address: "0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8"},
+		RunID:          "run-provenance",
+		Status:         "partial",
+		Block:          model.BlockRef{ChainID: 1, Number: 1, Hash: "0x" + strings.Repeat("00", 32)},
+		ObservationIDs: []string{"sha256:test"},
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
 	}); err != nil {
 		t.Fatal(err)
 	}

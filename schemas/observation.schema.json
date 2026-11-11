@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yangjian.local/schemas/observation.schema.json",
+  "title": "Observation",
+  "type": "object",
+  "required": ["schema_version", "id", "kind", "run_id", "request", "response_hash", "retrieved_at", "source"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "id": {"type": "string", "minLength": 1},
+    "kind": {"enum": ["rpc_call", "source_fetch", "build", "analysis", "proxy_probe", "report", "metadata_binding", "source_crosscheck", "static_analysis"]},
+    "run_id": {"type": "string", "minLength": 1},
+    "request": {"type": "object"},
+    "response_hash": {"type": "string", "minLength": 1},
+    "response_ref": {"type": "string"},
+    "block": {"$ref": "#/$defs/block"},
+    "retrieved_at": {"type": "string", "format": "date-time"},
+    "source": {
+      "type": "object",
+      "required": ["provider"],
+      "properties": {
+        "provider": {"type": "string", "minLength": 1},
+        "version": {"type": "string"},
+        "endpoint_class": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {"type": "string"},
+        "message": {"type": "string"}
+      }
+    },
+    "meta": {"type": "object"}
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "block": {
+      "type": "object",
+      "required": ["chain_id", "number", "hash"],
+      "properties": {
+        "chain_id": {"type": "integer", "minimum": 1},
+        "number": {"type": "integer", "minimum": 0},
+        "hash": {"type": "string", "pattern": "^0x[0-9a-fA-F]{64}$"}
+      }
+    }
+  }
+}

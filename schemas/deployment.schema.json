@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yangjian.local/schemas/deployment.schema.json",
+  "title": "Deployment",
+  "type": "object",
+  "required": ["schema_version", "id", "protocol_id", "chain_id", "block", "contract_version_ids", "evidence_refs"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "id": {"type": "string", "minLength": 1},
+    "protocol_id": {"type": "string", "pattern": "^protocol:.+$"},
+    "chain_id": {"type": "integer", "minimum": 1},
+    "block": {
+      "type": "object",
+      "required": ["chain_id", "number", "hash"],
+      "properties": {
+        "chain_id": {"type": "integer", "minimum": 1},
+        "number": {"type": "integer", "minimum": 1},
+        "hash": {"type": "string", "pattern": "^0x[0-9a-fA-F]{64}$"}
+      }
+    },
+    "contract_version_ids": {"type": "array", "items": {"type": "string"}},
+    "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": true
+}

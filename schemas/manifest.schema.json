@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yangjian.local/schemas/manifest.schema.json",
+  "title": "Manifest",
+  "type": "object",
+  "required": ["schema_version", "dossier_type", "target", "tool_version", "run_id", "status", "block", "artifacts", "contract_ids", "observation_ids", "relation_ids", "open_questions", "created_at", "updated_at"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "dossier_type": {"enum": ["contract", "protocol", "discovery", "transaction"]},
+    "target": {
+      "type": "object",
+      "required": ["chain_id"],
+      "properties": {
+        "chain_id": {"type": "integer", "minimum": 1},
+        "address": {"type": "string"},
+        "protocol_slug": {"type": "string"},
+        "transaction_hash": {"type": "string", "pattern": "^0x[0-9a-fA-F]{64}$"}
+      },
+      "additionalProperties": true
+    },
+    "tool_version": {"type": "string"},
+    "run_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["complete", "partial", "failed"]},
+    "block": {
+      "type": "object",
+      "required": ["chain_id", "number", "hash"],
+      "properties": {
+        "chain_id": {"type": "integer", "minimum": 1},
+        "number": {"type": "integer", "minimum": 1},
+        "hash": {"type": "string", "pattern": "^0x[0-9a-fA-F]{64}$"}
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "path", "hash"],
+        "properties": {
+          "kind": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "hash": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": true
+      }
+    },
+    "contract_ids": {"type": "array", "items": {"type": "string"}},
+    "observation_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "source_revision_ids": {"type": "array", "items": {"type": "string"}},
+    "relation_ids": {"type": "array", "items": {"type": "string"}},
+    "protocol_ids": {"type": "array", "items": {"type": "string"}},
+    "deployment_ids": {"type": "array", "items": {"type": "string"}},
+    "open_questions": {"type": "array", "items": {"type": "string"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {"properties": {"dossier_type": {"enum": ["contract", "discovery"]}}},
+      "then": {"properties": {"target": {"required": ["address"], "properties": {"address": {"pattern": "^0x[0-9a-fA-F]{40}$"}}}}}
+    },
+    {
+      "if": {"properties": {"dossier_type": {"const": "protocol"}}},
+      "then": {"properties": {"target": {"required": ["protocol_slug"]}}}
+    },
+    {
+      "if": {"properties": {"dossier_type": {"const": "transaction"}}},
+      "then": {"properties": {"target": {"required": ["transaction_hash"]}}}
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/rbee3u/yangjian/internal/model"
+	"github.com/rbee3u/yangjian/internal/schema"
 )
 
 type Store struct {
@@ -38,6 +39,9 @@ func (s *Store) WriteJSON(rel string, v any) (string, error) {
 // WriteJSONHashed writes an indented JSON document and returns the path and the
 // SHA-256 hash of the exact bytes written.
 func (s *Store) WriteJSONHashed(rel string, v any) (string, string, error) {
+	if err := schema.Validate(v); err != nil {
+		return "", "", fmt.Errorf("validate %s: %w", rel, err)
+	}
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return "", "", fmt.Errorf("marshal %s: %w", rel, err)
@@ -60,6 +64,9 @@ func (s *Store) ReadJSON(rel string, v any) error {
 	}
 	if err := json.Unmarshal(data, v); err != nil {
 		return fmt.Errorf("parse %s: %w", rel, err)
+	}
+	if err := schema.Validate(v); err != nil {
+		return fmt.Errorf("validate %s: %w", rel, err)
 	}
 	return nil
 }

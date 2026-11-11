@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yangjian.local/schemas/protocol.schema.json",
+  "title": "Protocol",
+  "type": "object",
+  "required": ["schema_version", "id", "name", "deployments", "target_registry_refs", "evidence_refs"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "id": {"type": "string", "pattern": "^protocol:.+$"},
+    "name": {"type": "string", "minLength": 1},
+    "aliases": {"type": "array", "items": {"type": "string"}},
+    "deployments": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "target_registry_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": true
+}

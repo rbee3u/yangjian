@@ -75,3 +75,13 @@ func TestWriteObservationIdempotent(t *testing.T) {
 		t.Fatal("different request must produce a different observation id")
 	}
 }
+
+func TestWriteJSONRejectsInvalidEntity(t *testing.T) {
+	st := New(t.TempDir())
+	if err := st.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.WriteJSON("manifest.json", model.Manifest{}); err == nil {
+		t.Fatal("expected schema validation error")
+	}
+}

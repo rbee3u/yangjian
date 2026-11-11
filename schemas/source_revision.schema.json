@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yangjian.local/schemas/source_revision.schema.json",
+  "title": "SourceRevision",
+  "type": "object",
+  "required": ["schema_version", "id", "sources", "compilation", "registry_match", "provenance_level", "correspondence", "evidence_refs"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "id": {"type": "string", "minLength": 1},
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["path", "keccak256", "content_ref"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "keccak256": {"type": "string", "minLength": 1},
+          "content_ref": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": true
+      }
+    },
+    "metadata_ref": {"type": ["string", "null"]},
+    "std_json_input_ref": {"type": ["string", "null"]},
+    "compilation": {
+      "type": "object",
+      "required": ["compiler"],
+      "properties": {
+        "compiler": {"type": "string", "minLength": 1},
+        "optimizer_runs": {"type": ["integer", "null"]},
+        "evm_version": {"type": "string"},
+        "remappings": {"type": "array", "items": {"type": "string"}},
+        "libraries": {"type": "object", "additionalProperties": {"type": "string"}},
+        "bytecode_hash": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "registry_match": {"enum": ["exact_match", "match", "none", "unknown"]},
+    "provenance_level": {"enum": ["P0", "P1", "P2", "P3"]},
+    "correspondence": {"enum": ["proven", "unproven"]},
+    "registry_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["provider", "address", "retrieved_at"],
+        "properties": {
+          "provider": {"type": "string"},
+          "address": {"type": "string"},
+          "retrieved_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "build": {"type": ["object", "null"]},
+    "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": true
+}

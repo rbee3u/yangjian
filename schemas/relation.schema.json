@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yangjian.local/schemas/relation.schema.json",
+  "title": "Relation",
+  "type": "object",
+  "required": ["schema_version", "id", "type", "from", "to", "evidence_refs"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "id": {"type": "string", "minLength": 1},
+    "type": {"enum": ["source_dependency", "onchain_reference", "observed_call", "inferred_relation"]},
+    "from": {"type": "string", "minLength": 1},
+    "to": {"type": "string", "minLength": 1},
+    "block_scope": {
+      "type": ["object", "null"],
+      "required": ["from_block"],
+      "properties": {
+        "from_block": {"type": "integer", "minimum": 1},
+        "to_block": {"type": ["integer", "null"]}
+      }
+    },
+    "attributes": {"type": "object"},
+    "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {"properties": {"type": {"const": "source_dependency"}}},
+      "then": {"properties": {"attributes": {"required": ["source_path", "symbol", "relation"]}}}
+    },
+    {
+      "if": {"properties": {"type": {"const": "onchain_reference"}}},
+      "then": {
+        "required": ["block_scope"],
+        "properties": {
+          "block_scope": {"type": "object"},
+          "attributes": {"required": ["method", "observation_id", "block_hash"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"type": {"const": "observed_call"}}},
+      "then": {"properties": {"attributes": {"required": ["tx_hash", "trace_reference", "call_path"]}}}
+    }
+  ]
+}
