@@ -141,21 +141,28 @@ The raw provider trace is preserved verbatim; normalized calls are derived. `obs
 
 ## Git policy
 
+`research/` is local working evidence and is ignored by Git. Dossiers contain
+large compiler outputs and raw provider payloads, and they can be regenerated
+from the target registry plus the pinned chain/block inputs. A fresh checkout
+therefore has no dossiers; rerun the relevant CLI command to recreate them.
+Share a dossier only through an explicit archive or a separate evidence store.
+
 Commit:
 
-- `research/` dossiers.
 - `targets/` registry.
 - `testdata/fixtures/` and `testdata/golden/`.
-- Design docs, ADRs, schemas.
+- Design docs, ADRs, schemas, and the Claude Code skill.
 
 Ignore:
 
+- `research/` dossiers.
 - `.yangjian/cache/`.
 - downloaded solc binaries.
 - local env files and secrets.
 - temporary build artifacts.
 
-Large observation sets should be reviewed; use Git LFS only if needed.
+Fixtures and golden files are the committed acceptance evidence; the full
+dossier remains the local, inspectable record of a run.
 
 ## Incremental updates
 

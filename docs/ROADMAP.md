@@ -50,7 +50,7 @@ Steps:
 5. Topology and architecture diagrams; protocol report; manifest; open questions (implemented).
 6. Respect budgets: default 50 contracts and 1000 observations per dossier run; selection is a fixed four-role topology with no recursive crawl, so `budgets.max_depth` is reserved (implemented).
 
-Definition of done: the Uniswap V3 deployment topology is reproducible from evidence, with every relation typed and sourced. M2 itself reads no trace; M4 adds transaction sequence diagrams behind a trace-provider capability probe. The live M2 acceptance run is recorded in `research/1/protocols/uniswap-v3/`.
+Definition of done: the Uniswap V3 deployment topology is reproducible from evidence, with every relation typed and sourced. M2 itself reads no trace; M4 adds transaction sequence diagrams behind a trace-provider capability probe. The live M2 acceptance run is recorded locally in `research/1/protocols/uniswap-v3/` (ignored by Git; see ADR 0025).
 
 ## M3 — Historical state (deferred)
 

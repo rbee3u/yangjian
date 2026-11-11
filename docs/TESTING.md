@@ -60,7 +60,7 @@ Offline fixture acceptance: Uniswap V3 USDC/WETH 0.3% Pool source layer.
   the SourceRevision ID.
 - Replay does not run solc, proxy probes, state reads, or report generation. Those
   layers are covered by fake-based unit tests, and the full M1 acceptance is the
-  live dossier run recorded under `research/`.
+  live dossier run recorded locally under `research/` (ignored by Git).
 - Full acceptance additionally checks storage layout, inheritance, `slot0`,
   `liquidity`, `ticks(currentTick)`, `onchain_reference` and `source_dependency`
   relations, report/diagrams/evidence index, and the absence of `observed_call`.

@@ -8,7 +8,7 @@ All decisions below were made during the design grilling on 2026-11-10. Each ADR
 | [0002](0002-mvp-scope.md) | MVP scope is Ethereum protocol research, not auditing, multi-chain delivery, or indexing | Accepted |
 | [0003](0003-external-data-adapters.md) | External data access goes through replaceable adapters; archive access is deferred | Accepted |
 | [0004](0004-source-provenance-levels.md) | Source provenance is graded; registry claims alone are never a source match | Accepted |
-| [0005](0005-file-first-knowledge.md) | Research knowledge is file-first and Git-versioned, not database-first | Accepted |
+| [0005](0005-file-first-knowledge.md) | Research knowledge is file-first and Git-versioned, not database-first | Accepted; Git-versioning narrowed by 0025 |
 | [0006](0006-contract-identity-and-versioning.md) | Contract identity is stable; behavior and source bindings are block-versioned | Accepted |
 | [0007](0007-observation-first-model.md) | Research knowledge is built from immutable observations and a derived entity graph | Accepted |
 | [0008](0008-relation-evidence-types.md) | Relations carry their evidence type; static dependencies are not observed calls | Accepted |
@@ -28,3 +28,4 @@ All decisions below were made during the design grilling on 2026-11-10. Each ADR
 | [0022](0022-solc-sandbox.md) | Solc runs as a pinned binary in a path-jailed temporary directory with resource limits | Accepted |
 | [0023](0023-config-and-secrets.md) | Configuration is JSON with environment-variable references for secrets | Accepted |
 | [0024](0024-error-contract.md) | Errors use stable codes and structured logs on stderr | Accepted |
+| [0025](0025-local-research-dossiers.md) | Full research dossiers stay local and are not committed | Accepted |
