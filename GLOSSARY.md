@@ -9,7 +9,7 @@ A named system of smart contracts that together provide a service; its on-chain 
 _Avoid_: Project, dapp, app
 
 **Research Target**:
-The entity a research run starts from: a protocol name, contract address, transaction hash, or source repository, together with its network and block scope.
+The entity a research run starts from: a target-registry protocol entry, contract address, or transaction hash, together with its network and block scope.
 _Avoid_: Subject, object, asset
 
 **Deployment**:
@@ -69,7 +69,7 @@ A provenance level where only a registry's verified flag and published artifacts
 A provenance level where the on-chain solc metadata pointer is resolved and source hashes and build settings are checked locally against the runtime bytecode.
 
 **P2 Reproducible Build**:
-A provenance level where the exact compiler, settings, remappings, and libraries are used to rebuild the runtime bytecode and compare it after masking immutables and constructor arguments.
+A provenance level where the exact compiler, settings, remappings, and libraries are used to rebuild the runtime bytecode and compare it after masking immutables and link references.
 
 **P3 Full Reproducibility**:
 A provenance level that additionally reproduces source maps and complete build artifacts.
@@ -131,7 +131,7 @@ The evidence-backed research artifact for one transaction trace, covering raw an
 _Avoid_: Trace file, transaction report
 
 **Observed Call**:
-A Relation asserting that a call frame appeared in a transaction trace. The endpoints are Contracts when code was observed at the receipt block and Accounts otherwise.
+A Relation asserting that a call frame appeared in a transaction trace. An endpoint is a Contract when code was observed at the receipt block, an Account when code was absent, and unclassified when the code check failed or was skipped.
 _Avoid_: Static call, inferred call, call graph edge
 
 ## Research Operations
@@ -141,9 +141,9 @@ A curated, evidence-backed list of protocol entrypoints, each with chain, addres
 _Avoid_: Address book, allowlist
 
 **Provider Profile**:
-A named configuration for a data source, including endpoint, auth reference, capabilities, rate limits, timeout, and retry policy.
+A named configuration for a data source, including endpoint, auth reference, rate limits, timeout, and retry policy; provider capabilities such as trace support are probed at runtime.
 _Avoid_: Config, provider config
 
 **Exploration Budget**:
-The per-dossier limits on relation depth, contract count, and request count that bound topology discovery.
+The per-dossier limits on contract count and request count that bound topology discovery; the current role selection has no recursive depth, so the configured depth budget is reserved.
 _Avoid_: Limit, cap

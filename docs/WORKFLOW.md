@@ -8,7 +8,7 @@ The original six phases remain a coverage checklist, but execution is iterative:
 
 1. **Target Resolution** — registry entry or explicit input; record network, block scope, source URL.
 2. **Contract Evidence** — runtime code, proxy probe, source artifacts, build facts.
-3. **Source Provenance** — P0–P3; bind source to deployed bytecode.
+3. **Source Provenance** — P0–P3 model; the current pipeline emits P0, P1, or P2 and binds source to deployed bytecode.
 4. **Static Structure** — inheritance, storage layout, immutables, ABI, call sites.
 5. **State Reads** — pinned-block `eth_call` and targeted `eth_getStorageAt`; event-log scans are deferred.
 6. **Topology and Report** — typed relations, diagrams, dossier, open questions.

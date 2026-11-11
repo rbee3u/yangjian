@@ -238,8 +238,8 @@ M1 is contract-centric. M2 adds two entities and references contract dossiers by
 
 - **P0**: registry claim only; `correspondence` is `unproven`.
 - **P1**: on-chain metadata pointer resolved and source hashes/settings checked.
-- **P2**: local recompile matched after masking immutables and constructor arguments.
-- **P3**: P2 plus source maps and complete build artifacts.
+- **P2**: local recompile matched after masking immutables and link references.
+- **P3**: P2 plus source maps and complete build artifacts; reserved, not emitted by the current pipeline.
 
 Contracts with `metadata.bytecodeHash = none` skip P1 and go directly to P2. If P2 fails, record P0 with `correspondence: unproven`.
 
